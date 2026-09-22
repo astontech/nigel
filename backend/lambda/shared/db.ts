@@ -55,6 +55,11 @@ export async function allEngineers(): Promise<Engineer[]> {
   const r = await ddb.send(new QueryCommand({ TableName: TABLE, IndexName: "byType", KeyConditionExpression: "gsi = :t", ExpressionAttributeValues: { ":t": "ENGINEER" } }));
   return (r.Items ?? []) as Engineer[];
 }
+export async function endedUnevaluated(): Promise<Session[]> {
+  const r = await ddb.send(new QueryCommand({ TableName: TABLE, IndexName: "byType", KeyConditionExpression: "gsi = :t", FilterExpression: "#s = :ended",
+    ExpressionAttributeNames: { "#s": "status" }, ExpressionAttributeValues: { ":t": "SESSION", ":ended": "ended" } }));
+  return (r.Items ?? []) as Session[];
+}
 export async function openSessions(): Promise<Session[]> {
   const r = await ddb.send(new QueryCommand({ TableName: TABLE, IndexName: "byType", KeyConditionExpression: "gsi = :t", FilterExpression: "#s = :open",
     ExpressionAttributeNames: { "#s": "status" }, ExpressionAttributeValues: { ":t": "SESSION", ":open": "open" } }));

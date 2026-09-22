@@ -46,8 +46,9 @@ until you Ctrl-C it, and everything was already recorded as it happened.
 ## What is recorded, and who sees it
 
 Every turn of the conversation and every write of `talk-track.md` or `drill-log.md`
-goes to DORIS, the backend in `backend/`, as it happens, under your token. DORIS runs
-one fixed evaluator over each drill and keeps the result.
+goes to DORIS, the backend in `backend/`, as it happens, under your token. When a drill
+ends, DORIS grades it with a fresh headless Claude Code session on an Aston seat, one
+fixed rubric for everyone, and keeps the result.
 
 - **You own the raw material** — the talk track and the transcripts. Only you and the
   evaluator read them. They're kept while you're in the program and deleted on request
@@ -76,7 +77,7 @@ One repo, one system, two components on different machines:
 
 - **NIGEL** — the shell, at the root, runs on the engineer's machine (`bin/`, `src/`, `ui/`).
 - **DORIS** — `backend/`, the CDK stack on Aston AWS: artifact store, evaluator,
-  readiness dashboard. Its own README covers deploying, tokens, and the API key.
+  readiness dashboard. Its own README covers deploying, tokens, and the seat token.
 - `plugin/` — the `interview-rehearsal` skill both use, copied from
   [astontech/claude-plugins](https://github.com/astontech/claude-plugins).
 

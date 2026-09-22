@@ -1,9 +1,9 @@
 import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
-import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
+import { ECSClient, RunTaskCommand } from "@aws-sdk/client-ecs";
 import { engineerByToken, getSession, putSession, updateSession, sessionsFor, allEngineers, putArtifact, getArtifact, newId, now, type Engineer, type Session } from "../shared/db.js";
 import { dashboardHtml } from "./dashboard.js";
 
-const lambda = new LambdaClient({});
+const ecs = new ECSClient({});
 const ARTIFACT_NAMES = new Set(["talk-track.md", "drill-log.md", "transcript.jsonl"]);
 
 const json = (status: number, body: unknown): APIGatewayProxyResultV2 => ({ statusCode: status, headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
@@ -53,7 +53,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
         if (s.status === "open") {
           const b = parse(body);
           await updateSession(who.engineerId, s.sessionId, { status: "ended", endedAt: now(), lastActivityAt: now(), ...(b.mode ? { mode: pick(b.mode) } : {}) });
-          await lambda.send(new InvokeCommand({ FunctionName: process.env.EVALUATOR, InvocationType: "Event", Payload: Buffer.from(JSON.stringify({ engineerId: who.engineerId, sessionId: s.sessionId })) }));
+          await runEvaluator({ ENGINEER_ID: who.engineerId, SESSION_ID: s.sessionId }).catch(e => console.error("evaluator launch failed; the sweep will pick it up", e));
         }
         return json(200, { ok: true });
       }
@@ -74,6 +74,15 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
     console.error(e);
     return json(500, { error: "internal", detail: String(e?.message ?? e) });
   }
+}
+
+/** Starts one DORIS grading task on Fargate with the session to grade in its environment. */
+async function runEvaluator(env: Record<string, string>) {
+  await ecs.send(new RunTaskCommand({
+    cluster: process.env.CLUSTER, taskDefinition: process.env.TASK_DEF, launchType: "FARGATE", count: 1,
+    networkConfiguration: { awsvpcConfiguration: { subnets: process.env.SUBNETS!.split(","), securityGroups: [process.env.SECURITY_GROUP!], assignPublicIp: "ENABLED" } },
+    overrides: { containerOverrides: [{ name: "evaluator", environment: Object.entries(env).map(([name, value]) => ({ name, value })) }] },
+  }));
 }
 
 export interface DashboardRow { engineer: Engineer; sessions: Session[]; }

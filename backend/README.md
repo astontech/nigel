@@ -19,12 +19,14 @@ derived record, which is what the name says.
 - **DynamoDB** `interview-rehearsal`: engineers, token hashes, sessions with their
   evaluation summary. **S3**: raw artifacts, transcripts, and `evaluation.json` per
   session, versioned, private.
-- **Evaluator Lambda**: reads a drill's transcript, talk track, and drill log; asks
-  Claude (`claude-sonnet-5`, temperature 0) to read each probe category strong or weak
-  against the fixed rubric in `lambda/evaluator/rubric.ts`, which mirrors the skill's
-  probe bank; stores the JSON and a summary on the session. Build sessions get only a
-  slot count. An hourly **sweep** ends and evaluates sessions left open more than
-  thirty minutes (closed windows).
+- **Evaluator** (`evaluator/`): a Fargate task that runs a headless **Claude Code**
+  session on an Aston seat. It reads a drill's transcript, talk track, and drill log,
+  gives Claude the fixed rubric in `evaluator/rubric.ts` (which mirrors the skill's
+  probe bank) as its whole system prompt with tools disabled, and stores the JSON plus a
+  summary on the session. Build sessions get only a slot count. The API launches one
+  task per `/end`; an hourly **sweep** task ends sessions idle more than thirty minutes
+  (closed windows) and grades everything ended but ungraded. Public subnets, no NAT, so
+  the only cost is task minutes: cents a month.
 
 ## Operate
 
@@ -36,16 +38,19 @@ npm run token -- --name "Jane Doe"                 # engineer token, printed onc
 npm run token -- --name "Taylor Thurman" --manager # manager token (dashboard)
 ```
 
-The evaluator needs an Anthropic API key, stored once:
+The evaluator signs in as an Aston Claude seat with a long-lived token. Once, on a
+machine where that seat is signed in:
 
 ```bash
+claude setup-token          # browser flow; prints a token
 aws secretsmanager put-secret-value --profile aston-dev --region us-east-2 \
-  --secret-id interview-rehearsal/anthropic-api-key --secret-string 'sk-ant-...'
+  --secret-id interview-rehearsal/claude-token --secret-string '<token>'
 ```
 
-Until it's set, drills are recorded but stay `ended`; the sweep evaluates them once the
-key exists. Dashboard: `<ApiUrl>/dashboard?token=<manager token>` (the URL is in
-`cdk-outputs.json` after a deploy).
+Until it's set, drills are recorded but stay `ended`; the sweep grades them once the
+token exists. Grading uses the seat's allowance, not an API bill. Dashboard:
+`<ApiUrl>/dashboard?token=<manager token>` (the URL is in `cdk-outputs.json` after a
+deploy). Grading logs: CloudWatch, log group prefixed `doris`.
 
 ## Decisions
 
@@ -60,9 +65,14 @@ key exists. Dashboard: `<ApiUrl>/dashboard?token=<manager token>` (the URL is in
   reads, summaries), which is all the dashboard shows. Raw artifacts also describe
   client systems, so they stay on Aston infrastructure under normal client
   confidentiality handling.
-- **One evaluator, one rubric, temperature 0.** So every engineer is read the same
-  way. Reads are still a model's judgment: use them as prompts for a conversation, not
-  as scores. The number that carries across sessions is open slots.
+- **One evaluator, one rubric, a fresh session each time.** So every engineer is read
+  the same way, and the interviewer's session never colors the grade. Reads are still a
+  model's judgment: use them as prompts for a conversation, not as scores. The number
+  that carries across sessions is open slots.
+- **Headless Claude Code on an Aston seat, not an API key.** Same mechanism as running
+  the skill on a laptop, signed in as a company seat; no separate vendor account or
+  per-call bill. Grading counts against that seat's allowance, so the seat should be one
+  Aston is happy to have the service tied to.
 - **Records on every turn.** The shell posts the full transcript after each turn and
   each artifact on every write, so a closed window loses nothing.
 
