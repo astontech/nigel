@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Interview rehearsal</title>
+<style>
+:root{--ground:#F3F5F6;--surface:#FFFFFF;--ink:#1A222B;--muted:#5F6C78;--line:#D6DDE2;--accent:#245C8A;--accent-soft:#E6EFF6;--cue:#A86A1C;--cue-soft:#F6EBD9;--warn:#8A2E2E;--warn-soft:#F7E6E6;--rec:#C0392B}
+@media(prefers-color-scheme:dark){:root{--ground:#12181E;--surface:#1B232B;--ink:#E6EBEF;--muted:#97A3AE;--line:#2C3741;--accent:#7FB3E0;--accent-soft:#1E2E3D;--cue:#E0A95B;--cue-soft:#2C2416;--warn:#E08A8A;--warn-soft:#3A2020;--rec:#FF6B5B}}
+*{box-sizing:border-box}html,body{height:100%}
+body{margin:0;background:var(--ground);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column}
+header{display:flex;align-items:center;gap:14px;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--ground);position:sticky;top:0;z-index:2}
+header h1{font-size:16px;margin:0;font-weight:600}
+.pill{font:12px/1 ui-monospace,SFMono-Regular,Menlo,monospace;padding:4px 9px;border-radius:5px;background:var(--accent-soft);color:var(--accent);letter-spacing:.04em;text-transform:uppercase}
+.pill.cue{background:var(--cue-soft);color:var(--cue)}.pill.off{background:var(--warn-soft);color:var(--warn)}
+header .spacer{flex:1}
+button{font:inherit;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:8px 14px;cursor:pointer}
+button:hover{border-color:var(--accent)}button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.mic.on{border-color:var(--rec);color:var(--rec);box-shadow:0 0 0 3px color-mix(in srgb,var(--rec) 25%,transparent)}
+main{flex:1;overflow-y:auto;padding:20px 16px}
+.thread{max-width:76ch;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.msg{padding:14px 18px;border-radius:10px;white-space:pre-wrap;overflow-wrap:anywhere}
+.msg.assistant{background:var(--surface);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;font-family:"Source Serif 4",Georgia,serif;font-size:17px;line-height:1.6}
+.msg.user{background:var(--accent-soft);align-self:flex-end;max-width:90%}
+.msg.system{color:var(--muted);font-size:14px;text-align:center;background:none;padding:4px}
+.msg .md-b{font-weight:600}
+footer{border-top:1px solid var(--line);background:var(--ground);padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px))}
+.composer{max-width:76ch;margin:0 auto;display:flex;flex-direction:column;gap:8px}
+textarea{width:100%;min-height:88px;resize:vertical;font:inherit;padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
+textarea:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.hint{color:var(--muted);font-size:13px}.row .spacer{flex:1}
+.timer{font:14px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted);font-variant-numeric:tabular-nums}
+.timer.over{color:var(--cue)}
+@media(prefers-reduced-motion:no-preference){.msg.assistant.streaming::after{content:"▍";color:var(--accent);animation:blink 1s steps(2) infinite}@keyframes blink{to{opacity:0}}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Interview rehearsal</h1>
+  <span id="mode" class="pill" hidden></span>
+  <span id="rec" class="pill off" hidden>not recording</span>
+  <span class="spacer"></span>
+  <button id="endBtn" type="button">End session</button>
+</header>
+<main><div id="thread" class="thread"></div></main>
+<footer>
+  <div class="composer">
+    <textarea id="input" placeholder="Answer out loud with the mic, or type. Enter sends; Shift+Enter is a new line."></textarea>
+    <div class="row">
+      <button id="mic" class="mic" type="button" title="Hold a conversation by voice (Chrome or Edge)">🎙 Speak</button>
+      <span id="timer" class="timer" hidden>0:00</span>
+      <span class="spacer"></span>
+      <span id="hint" class="hint"></span>
+      <button id="send" class="primary" type="button">Send</button>
+    </div>
+  </div>
+</footer>
+<script>
+const $ = (id) => document.getElementById(id);
+const thread = $("thread"), input = $("input"), micBtn = $("mic"), timerEl = $("timer"), hint = $("hint");
+let streaming = null, answerStart = null, timerHandle = null, ended = false;
+
+function esc(s){ return s.replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+function render(s){ return esc(s).replace(/\*\*([^*\n]+)\*\*/g, '<span class="md-b">$1</span>'); }
+function add(role, text, opts = {}) {
+  const el = document.createElement("div"); el.className = `msg ${role}` + (opts.streaming ? " streaming" : "");
+  el.innerHTML = render(text); thread.appendChild(el); el.scrollIntoView({ block: "end" }); return el;
+}
+function setMode(m){ if (!m) return; const p = $("mode"); p.textContent = m; p.hidden = false; }
+function startTimer(){ answerStart = Date.now(); timerEl.hidden = false; clearInterval(timerHandle);
+  timerHandle = setInterval(() => { const s = Math.floor((Date.now() - answerStart) / 1000); timerEl.textContent = `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`; timerEl.classList.toggle("over", s > 90); }, 250); }
+function stopTimer(){ clearInterval(timerHandle); timerEl.hidden = true; }
+
+const es = new EventSource("/events");
+es.addEventListener("state", e => { const s = JSON.parse(e.data); setMode(s.mode); $("rec").hidden = s.recording; if (s.ended) finish("This session has ended."); });
+es.addEventListener("user", e => { const d = JSON.parse(e.data); add("user", d.text); });
+es.addEventListener("delta", e => { const d = JSON.parse(e.data); if (!streaming) streaming = add("assistant", "", { streaming: true }); streaming.dataset.raw = (streaming.dataset.raw || "") + d.text; streaming.innerHTML = render(streaming.dataset.raw); streaming.scrollIntoView({ block: "end" }); });
+es.addEventListener("assistant", e => { const d = JSON.parse(e.data); if (streaming) { streaming.classList.remove("streaming"); streaming.innerHTML = render(d.text); streaming = null; } else add("assistant", d.text); setMode(d.mode); if (!d.replay) { startTimer(); if (listening) recognition.start(); } });
+es.addEventListener("artifact", e => { const d = JSON.parse(e.data); hint.textContent = `${d.name} saved · ${d.slots} open slot${d.slots === 1 ? "" : "s"}`; });
+es.addEventListener("fatal", e => { finish(JSON.parse(e.data).text); });
+es.addEventListener("ended", e => finish("Session ended. Your record is saved. Close this tab."));
+es.addEventListener("exit", () => { if (!ended) finish("Claude Code exited."); });
+
+async function send() {
+  const text = input.value.trim(); if (!text || ended) return;
+  input.value = ""; stopTimer(); if (listening) recognition.stop();
+  await fetch("/input", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text }) });
+}
+$("send").onclick = send;
+input.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } });
+$("endBtn").onclick = async () => { if (ended) return; $("endBtn").disabled = true; await fetch("/end", { method: "POST" }); };
+function finish(msg){ ended = true; add("system", msg); input.disabled = true; $("send").disabled = true; micBtn.disabled = true; $("endBtn").disabled = true; stopTimer(); if (listening) recognition.stop(); }
+
+// Voice: the browser transcribes locally (Chrome/Edge). Interim text shows in the box; final text is appended. Send is still explicit.
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null, listening = false, committed = "";
+if (SR) {
+  recognition = new SR(); recognition.continuous = true; recognition.interimResults = true; recognition.lang = "en-US";
+  recognition.onresult = (ev) => { let interim = ""; for (let i = ev.resultIndex; i < ev.results.length; i++) { const r = ev.results[i]; if (r.isFinal) committed += r[0].transcript + " "; else interim += r[0].transcript; } input.value = (committed + interim).replace(/\s+/g, " ").trimStart(); };
+  recognition.onend = () => { if (listening && !ended) { try { recognition.start(); } catch {} } };
+  recognition.onerror = (e) => { if (e.error === "not-allowed") { listening = false; micBtn.classList.remove("on"); hint.textContent = "Microphone blocked. Allow it in the address bar, or type."; } };
+  micBtn.onclick = () => { listening = !listening; micBtn.classList.toggle("on", listening); micBtn.textContent = listening ? "🎙 Listening" : "🎙 Speak"; committed = input.value ? input.value + " " : ""; if (listening) recognition.start(); else recognition.stop(); };
+} else { micBtn.disabled = true; micBtn.title = "Voice needs Chrome or Edge"; hint.textContent = "Voice input needs Chrome or Edge; typing works everywhere."; }
+</script>
+</body>
+</html>

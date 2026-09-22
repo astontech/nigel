@@ -1,0 +1,18 @@
+{
+  "name": "@astontech/interview-shell",
+  "version": "0.1.0",
+  "description": "Local shell around Claude Code for interview rehearsal: spawns your own claude with the interview-rehearsal skill, voice input, and records the session to Aston's backend",
+  "type": "module",
+  "bin": { "interview-shell": "bin/cli.js" },
+  "files": ["bin", "src", "ui", "plugin"],
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node bin/cli.js",
+    "sync-plugin": "rm -rf plugin/skills && cp -R ../claude-plugins/plugins/interview-rehearsal/skills plugin/skills && cp ../claude-plugins/plugins/interview-rehearsal/.claude-plugin/plugin.json plugin/.claude-plugin/plugin.json",
+    "test": "node --test test/"
+  },
+  "dependencies": {
+    "open": "^10.1.0"
+  },
+  "license": "MIT"
+}
