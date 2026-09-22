@@ -1,6 +1,6 @@
-# interview-shell
+# N.I.G.E.L. — Never Impressed, Generally Evenhanded Listener
 
-A local shell around Claude Code for interview rehearsal. It starts your own `claude`
+NIGEL is the interviewer Aston engineers rehearse against: a local shell around Claude Code. It starts your own `claude`
 with the `interview-rehearsal` skill loaded, opens a browser tab, lets you answer by
 voice, and records the session to Aston's readiness backend as you go.
 
@@ -19,8 +19,8 @@ running the skill in a terminal.
 ## Run
 
 ```bash
-npx github:astontech/interview-shell --token <your token>   # first time: saves the token
-npx github:astontech/interview-shell                        # every time after
+npx github:astontech/nigel --token <your token>   # first time: saves the token
+npx github:astontech/nigel                        # every time after
 ```
 
 A tab opens. The skill decides the mode from what it finds in the session folder:
@@ -46,8 +46,8 @@ until you Ctrl-C it, and everything was already recorded as it happened.
 ## What is recorded, and who sees it
 
 Every turn of the conversation and every write of `talk-track.md` or `drill-log.md`
-goes to the backend as it happens, under your token. The backend runs one fixed
-evaluator over each drill and keeps the result.
+goes to DORIS, the backend in `backend/`, as it happens, under your token. DORIS runs
+one fixed evaluator over each drill and keeps the result.
 
 - **You own the raw material** — the talk track and the transcripts. Only you and the
   evaluator read them. They're kept while you're in the program and deleted on request
@@ -69,6 +69,21 @@ evaluator over each drill and keeps the result.
 
 Sessions live in `~/.interview-shell/sessions/<timestamp>/`. The token is in
 `~/.config/interview-shell/config.json`.
+
+## Layout
+
+One repo, one system, two components on different machines:
+
+- **NIGEL** — the shell, at the root, runs on the engineer's machine (`bin/`, `src/`, `ui/`).
+- **DORIS** — `backend/`, the CDK stack on Aston AWS: artifact store, evaluator,
+  readiness dashboard. Its own README covers deploying, tokens, and the API key.
+- `plugin/` — the `interview-rehearsal` skill both use, copied from
+  [astontech/claude-plugins](https://github.com/astontech/claude-plugins).
+
+Codenames follow the Lab's system-naming convention (Stark-style: a first name, an
+understated sentence that is true about the system's stance). They are labels only:
+the package is still `@astontech/interview-shell`, the skill is still
+`interview-rehearsal`, and no identifier inside the code carries a codename.
 
 ## Development
 

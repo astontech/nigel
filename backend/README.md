@@ -1,8 +1,9 @@
-# interview-rehearsal-backend
+# D.O.R.I.S. — Discreetly Observes Rehearsals, Informs Sparingly
 
-CDK stack (TypeScript, `aston-dev` account, `us-east-2`) behind
-[interview-shell](https://github.com/astontech/interview-shell): artifact store, one
-fixed evaluator, and the readiness dashboard.
+DORIS is the backend half of [NIGEL](../README.md): a CDK stack (TypeScript,
+`aston-dev` account, `us-east-2`) holding the artifact store, one fixed evaluator, and
+the readiness dashboard. It reads every drill in full and shows the manager only the
+derived record, which is what the name says.
 
 ## What it is
 
@@ -28,6 +29,7 @@ fixed evaluator, and the readiness dashboard.
 ## Operate
 
 ```bash
+cd backend
 npm install
 npm run deploy                                     # cdk deploy, profile aston-dev
 npm run token -- --name "Jane Doe"                 # engineer token, printed once

@@ -11,9 +11,9 @@ const argv = process.argv.slice(2);
 const log = (m) => console.error(`[interview-shell] ${m}`);
 
 if (argv.includes("--help") || argv.includes("-h")) {
-  console.log(`interview-shell — rehearse a client interview with Claude Code
+  console.log(`NIGEL — rehearse a client interview with Claude Code
 
-  npx github:astontech/interview-shell            start a session (build or drill, the skill decides)
+  npx github:astontech/nigel                      start a session (build or drill, the skill decides)
   --token <t>      your Aston-issued token (saved to ${CONFIG_FILE})
   --no-record      run without sending anything to the backend
   --no-open        don't open the browser
