@@ -1,0 +1,34 @@
+{
+  "name": "interview-rehearsal-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CDK backend for interview rehearsal: artifact store, evaluator, readiness dashboard",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "deploy": "cdk deploy --profile aston-dev --require-approval never",
+    "diff": "cdk diff --profile aston-dev",
+    "destroy": "cdk destroy --profile aston-dev",
+    "token": "AWS_PROFILE=${AWS_PROFILE:-aston-dev} tsx scripts/token.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.80.0",
+    "@aws-sdk/client-dynamodb": "^3.700.0",
+    "@aws-sdk/client-lambda": "^3.700.0",
+    "@aws-sdk/client-s3": "^3.700.0",
+    "@aws-sdk/client-secrets-manager": "^3.700.0",
+    "@aws-sdk/lib-dynamodb": "^3.700.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.145",
+    "@types/node": "^22.10.0",
+    "aws-cdk": "^2.170.0",
+    "aws-cdk-lib": "^2.170.0",
+    "constructs": "^10.4.2",
+    "esbuild": "^0.24.0",
+    "tsx": "^4.19.2",
+    "typescript": "~5.6.3",
+    "vitest": "^2.1.8"
+  },
+  "type": "module"
+}
