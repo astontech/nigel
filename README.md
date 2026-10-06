@@ -33,8 +33,8 @@ A tab opens. The skill decides the mode from what it finds in the session folder
 - **Drill** — when a talk track exists. The skill plays a client interviewer: one
   question at a time, no coaching, pulling a thread until it runs out, then a debrief.
 
-To drill from a talk track you built earlier, copy its `talk-track.md` into the new
-session folder the shell prints at start, or paste it as your first message.
+Each launch carries your latest `talk-track.md` and `resume.md` forward into the new
+session folder, so a talk track you built earlier is found without any copying.
 
 **Answering by voice:** press *Speak*, talk, watch the transcript fill the box, press
 *Send* (or Enter). The timer under the box shows how long you've been answering; it

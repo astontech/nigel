@@ -6,6 +6,7 @@ import open from "open";
 import { loadConfig, saveToken, SESSIONS_DIR, CONFIG_FILE } from "../src/config.js";
 import { Backend } from "../src/backend.js";
 import { startServer } from "../src/server.js";
+import { carryForward } from "../src/carry.js";
 
 const argv = process.argv.slice(2);
 const log = (m) => console.error(`[interview-shell] ${m}`);
@@ -40,6 +41,7 @@ if (config.record) {
 const sessionDir = join(SESSIONS_DIR, new Date().toISOString().replace(/[:.]/g, "-"));
 mkdirSync(sessionDir, { recursive: true });
 log(`session folder: ${sessionDir}`);
+for (const { file, from } of carryForward(SESSIONS_DIR, sessionDir)) log(`carried ${file} forward from ${from}`);
 
 const { server, end } = startServer({ config, backend, sessionDir, log });
 server.listen(config.port, "127.0.0.1", () => {
