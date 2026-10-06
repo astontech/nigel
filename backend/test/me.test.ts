@@ -19,6 +19,7 @@ vi.mock("../lambda/shared/db.js", async () => {
   };
 });
 
+const { levelFor } = await import("../lambda/shared/level.js");
 const { handler } = await import("../lambda/api/handler.js");
 const call = (path: string, token = "good") => handler({ rawPath: path, headers: { authorization: `Bearer ${token}` }, requestContext: { http: { method: "GET" } } } as any) as Promise<{ statusCode: number; body: string }>;
 
@@ -53,6 +54,18 @@ describe("GET /me", () => {
       ],
       goFindOut: ["billing cutover sizing"],
     });
+  });
+
+  it("keeps summary level equal to the dashboard level when a graded drill has no evaluation.json", async () => {
+    store.sessions = [drill(1, "ready"), drill(2, "ready"), drill(3, "close")];
+    store.evaluations.set("s1", evaluation("ready", "ingest pipeline", null));
+    store.evaluations.set("s3", evaluation("close", "billing cutover", null));
+    const body = JSON.parse((await call("/me")).body);
+    expect(body.summary.level).toBe(levelFor(store.sessions));
+    expect(body.summary.level).toBe("L2");
+    expect(body.summary.drillsGraded).toBe(3);
+    expect(body.summary.latestReadiness).toBe("close");
+    expect(body.summary.claimsDrilled).toEqual(["ingest pipeline", "billing cutover"]);
   });
 
   it("returns no raw transcript, quote or contradiction text (DEC-166)", async () => {

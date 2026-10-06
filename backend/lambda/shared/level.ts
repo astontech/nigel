@@ -44,8 +44,12 @@ export interface GradeSummary {
   goFindOut: string[];
 }
 
-/** Builds the engineer's own derived record from their graded drills and each drill's evaluation.json (oldest first). */
-export function buildSummary(drills: { session: Session; evaluation: StoredEvaluation }[]): GradeSummary {
+/**
+ * Builds the engineer's own derived record. Level, drill count and latest readiness come from every graded drill (the same read the
+ * dashboard uses); claims, category reads, threads and go-find-out come from each stored evaluation.json (oldest first), so a drill
+ * whose file is missing leaves those out without moving the level.
+ */
+export function buildSummary(graded: Session[], drills: { session: Session; evaluation: StoredEvaluation }[]): GradeSummary {
   const claims: string[] = [];
   const threads: GradeSummary["threads"] = [];
   const categoryReads: GradeSummary["categoryReads"] = {};
@@ -71,9 +75,9 @@ export function buildSummary(drills: { session: Session; evaluation: StoredEvalu
   }
   const latest = drills.at(-1)?.evaluation;
   return {
-    level: computeLevel(drills.map(d => d.session.evaluation!.overall!)),
-    drillsGraded: drills.length,
-    latestReadiness: drills.at(-1)?.session.evaluation?.overall ?? null,
+    level: levelFor(graded),
+    drillsGraded: graded.length,
+    latestReadiness: graded.at(-1)?.evaluation?.overall ?? null,
     claimsDrilled: claims,
     categoryReads,
     threads,

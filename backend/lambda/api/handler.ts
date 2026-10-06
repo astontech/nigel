@@ -26,7 +26,8 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
   try {
     if (method === "GET" && path === "/me") {
       const sessions = await sessionsFor(who.engineerId);
-      const summary = buildSummary(await evaluationsFor(gradedDrills(sessions)));
+      const graded = gradedDrills(sessions);
+      const summary = buildSummary(graded, await evaluationsFor(graded));
       return json(200, { engineer: strip(who), sessions, summary });
     }
 
