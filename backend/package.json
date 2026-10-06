@@ -9,7 +9,7 @@
     "diff": "cdk diff --profile aston-dev",
     "destroy": "cdk destroy --profile aston-dev",
     "token": "AWS_PROFILE=${AWS_PROFILE:-aston-dev} tsx scripts/token.ts",
-    "test": "vitest run"
+    "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.700.0",
