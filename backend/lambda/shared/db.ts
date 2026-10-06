@@ -1,6 +1,7 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { S3Client, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import type { StoredEvaluation } from "./level.js";
 import { createHash, randomBytes } from "node:crypto";
 
 export const TABLE = process.env.TABLE!;
@@ -50,6 +51,14 @@ export async function sessionsFor(engineerId: string): Promise<Session[]> {
   const r = await ddb.send(new QueryCommand({ TableName: TABLE, KeyConditionExpression: "pk = :pk AND begins_with(sk, :sk)",
     ExpressionAttributeValues: { ":pk": `ENGINEER#${engineerId}`, ":sk": "SESSION#" } }));
   return (r.Items ?? []) as Session[];
+}
+/** Each graded drill's stored evaluation.json (derived record), oldest first; a drill whose file is missing is skipped. */
+export async function evaluationsFor(drills: Session[]): Promise<{ session: Session; evaluation: StoredEvaluation }[]> {
+  const found = await Promise.all(drills.map(async session => {
+    const raw = await getArtifact(session.engineerId, session.sessionId, "evaluation.json");
+    return raw === undefined ? undefined : { session, evaluation: JSON.parse(raw) as StoredEvaluation };
+  }));
+  return found.filter((d): d is { session: Session; evaluation: StoredEvaluation } => d !== undefined);
 }
 export async function allEngineers(): Promise<Engineer[]> {
   const r = await ddb.send(new QueryCommand({ TableName: TABLE, IndexName: "byType", KeyConditionExpression: "gsi = :t", ExpressionAttributeValues: { ":t": "ENGINEER" } }));

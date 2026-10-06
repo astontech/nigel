@@ -1,6 +1,7 @@
 import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
 import { ECSClient, RunTaskCommand } from "@aws-sdk/client-ecs";
-import { engineerByToken, getSession, putSession, updateSession, sessionsFor, allEngineers, putArtifact, getArtifact, newId, now, type Engineer, type Session } from "../shared/db.js";
+import { engineerByToken, getSession, putSession, updateSession, sessionsFor, allEngineers, evaluationsFor, putArtifact, getArtifact, newId, now, type Engineer, type Session } from "../shared/db.js";
+import { buildSummary, gradedDrills, levelFor, type Level } from "../shared/level.js";
 import { dashboardHtml } from "./dashboard.js";
 
 const ecs = new ECSClient({});
@@ -23,7 +24,11 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
   const seg = path.split("/").filter(Boolean);
 
   try {
-    if (method === "GET" && path === "/me") return json(200, { engineer: strip(who), sessions: await sessionsFor(who.engineerId) });
+    if (method === "GET" && path === "/me") {
+      const sessions = await sessionsFor(who.engineerId);
+      const summary = buildSummary(await evaluationsFor(gradedDrills(sessions)));
+      return json(200, { engineer: strip(who), sessions, summary });
+    }
 
     if (method === "POST" && path === "/sessions") {
       const b = parse(body);
@@ -85,10 +90,13 @@ async function runEvaluator(env: Record<string, string>) {
   }));
 }
 
-export interface DashboardRow { engineer: Engineer; sessions: Session[]; }
+export interface DashboardRow { engineer: Engineer; sessions: Session[]; level: Level; }
 async function dashboardData(): Promise<{ generatedAt: string; rows: DashboardRow[] }> {
   const engineers = (await allEngineers()).filter(e => e.role === "engineer");
-  const rows = await Promise.all(engineers.map(async e => ({ engineer: strip(e), sessions: (await sessionsFor(e.engineerId)).sort((a, b) => a.startedAt.localeCompare(b.startedAt)) })));
+  const rows = await Promise.all(engineers.map(async e => {
+    const sessions = (await sessionsFor(e.engineerId)).sort((a, b) => a.startedAt.localeCompare(b.startedAt));
+    return { engineer: strip(e), sessions, level: levelFor(sessions) };
+  }));
   return { generatedAt: now(), rows };
 }
 
