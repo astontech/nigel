@@ -14,6 +14,7 @@ export function dashboardHtml(data: { generatedAt: string; rows: DashboardRow[] 
     const cats = latestEval?.categories ? Object.entries(latestEval.categories).map(([k, v]) => `<span class="pill ${v}">${esc(k)}</span>`).join(" ") : '<span class="muted">no evaluated drill yet</span>';
     return `<tr>
       <td class="name">${esc(r.engineer.name)}</td>
+      <td class="level">${esc(r.level)}</td>
       <td class="num">${drills.length}</td>
       <td class="num">${builds.length}</td>
       <td>${esc(day(last?.lastActivityAt))}${last && last.status === "open" ? ' <span class="pill open">open</span>' : ""}</td>
@@ -42,10 +43,10 @@ p.legend{color:var(--muted);font-size:13px;max-width:70ch}
 <h1>Interview readiness</h1>
 <p class="sub">Generated ${esc(data.generatedAt)} · ${data.rows.length} engineer${data.rows.length === 1 ? "" : "s"}</p>
 <div class="wrap"><table>
-<thead><tr><th>Engineer</th><th>Drills</th><th>Builds</th><th>Last activity</th><th>Open slots</th><th>Threads, latest drill</th><th>Category reads, latest drill</th><th>Sessions</th></tr></thead>
-<tbody>${rows || '<tr><td colspan="8" class="muted">No engineers yet. Issue a token with <code>npm run token -- --name "Name"</code>.</td></tr>'}</tbody>
+<thead><tr><th>Engineer</th><th>Level</th><th>Drills</th><th>Builds</th><th>Last activity</th><th>Open slots</th><th>Threads, latest drill</th><th>Category reads, latest drill</th><th>Sessions</th></tr></thead>
+<tbody>${rows || '<tr><td colspan="9" class="muted">No engineers yet. Issue a token with <code>npm run token -- --name "Name"</code>.</td></tr>'}</tbody>
 </table></div>
-<p class="legend">Open slots are fact-sheet rows still unfilled; the series in brackets is per session, oldest first, and should fall. Reads are the evaluator's judgment of the latest drill against the probe bank: strong, weak, or mixed. Raw transcripts and talk tracks are the engineer's; this page shows only the derived record.</p>
+<p class="legend">Level is L1 to L3: two drills in a row graded ready move an engineer up, two graded not-yet move them down. Open slots are fact-sheet rows still unfilled; the series in brackets is per session, oldest first, and should fall. Reads are the evaluator's judgment of the latest drill against the probe bank: strong, weak, or mixed. Raw transcripts and talk tracks are the engineer's; this page shows only the derived record.</p>
 </body></html>`;
 }
 
