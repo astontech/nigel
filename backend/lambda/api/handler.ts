@@ -5,7 +5,7 @@ import { buildSummary, gradedDrills, levelFor, type Level } from "../shared/leve
 import { dashboardHtml } from "./dashboard.js";
 
 const ecs = new ECSClient({});
-const ARTIFACT_NAMES = new Set(["talk-track.md", "drill-log.md", "transcript.jsonl"]);
+const ARTIFACT_NAMES = new Set(["talk-track.md", "resume.md", "drill-log.md", "transcript.jsonl"]);
 
 const json = (status: number, body: unknown): APIGatewayProxyResultV2 => ({ statusCode: status, headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
 const html = (body: string): APIGatewayProxyResultV2 => ({ statusCode: 200, headers: { "content-type": "text/html; charset=utf-8" }, body });
