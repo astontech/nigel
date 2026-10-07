@@ -1,7 +1,7 @@
 import { watch, readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
-const ARTIFACTS = ["talk-track.md", "drill-log.md"];
+const ARTIFACTS = ["talk-track.md", "resume.md", "drill-log.md"];
 
 /** Posts each artifact the skill writes, debounced, so a closed window never loses a write. */
 export function watchArtifacts(dir, onArtifact) {
