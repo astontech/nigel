@@ -9,6 +9,7 @@
     "diff": "cdk diff --profile aston-dev",
     "destroy": "cdk destroy --profile aston-dev",
     "token": "AWS_PROFILE=${AWS_PROFILE:-aston-dev} tsx scripts/token.ts",
+    "seed-demo": "AWS_PROFILE=${AWS_PROFILE:-aston-dev} tsx scripts/seed-demo.ts",
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
