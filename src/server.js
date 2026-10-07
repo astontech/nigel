@@ -8,8 +8,8 @@ import { watchArtifacts } from "./watch.js";
 const UI = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "..", "ui", "index.html"));
 
 /** Local server: serves the UI, streams the session over SSE, forwards input, records to the backend. */
-export function startServer({ config, backend, sessionDir, log, summary }) {
-  const claude = new ClaudeSession({ bin: config.claude, cwd: sessionDir, summary });
+export function startServer({ config, backend, sessionDir, log, summary, unreachable }) {
+  const claude = new ClaudeSession({ bin: config.claude, cwd: sessionDir, summary, unreachable });
   const clients = new Set();
   let mode; let ended = false; let pending = "";
   const state = () => ({ mode, ended, sessionId: backend?.sessionId ?? null, recording: !!backend, turns: claude.turns.length });

@@ -1,34 +1,91 @@
-/** Client for the interview-rehearsal backend. Never throws into the session: failures are logged and retried. */
-export class Backend {
-  constructor({ api, token, log = console.error }) { this.api = api; this.token = token; this.log = log; this.sessionId = null; this.queue = Promise.resolve(); this.failures = 0; }
+import { appendFileSync, existsSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { basename, join } from "node:path";
 
+export const QUEUE_FILE = "queue.jsonl";
+const SESSION_ID = "{sessionId}";
+
+/**
+ * Client for the interview-rehearsal backend. Never throws into the session. Every write goes to a queue file in
+ * the session folder first and is sent in order; a network failure or 5xx leaves the rest queued (DEC-200), to be
+ * sent when DORIS answers again or at the next launch. A rejected token (401/403) stops sending and is reported.
+ */
+export class Backend {
+  constructor({ api, token, log = console.error, queueFile }) {
+    this.api = api; this.token = token; this.log = log; this.queueFile = queueFile;
+    this.sessionId = null; this.offline = false; this.rejected = false; this.chain = Promise.resolve();
+  }
+
+  /** Queues `POST /sessions` as the first write and tries to send it; the session id may come later. */
   async start(mode = "unknown") {
-    const r = await this.#call("POST", "/sessions", { mode });
-    this.sessionId = r?.sessionId ?? null;
+    await this.#write({ method: "POST", path: "/sessions", body: { mode }, type: "application/json" });
     return this.sessionId;
   }
   /** The engineer's own derived grade record (level, reads, threads), or undefined when DORIS cannot be reached. */
-  async summary() { return (await this.#call("GET", "/me"))?.summary; }
-  putArtifact(name, body) { return this.#enqueue("PUT", `/sessions/${this.sessionId}/artifacts/${name}`, body, "text/plain"); }
-  putTranscript(turns) { return this.putArtifact("transcript.jsonl", turns.map(t => JSON.stringify(t)).join("\n") + "\n"); }
-  end(mode) { return this.#enqueue("POST", `/sessions/${this.sessionId}/end`, { mode }); }
-
-  #enqueue(method, path, body, type) {
-    if (!this.sessionId) return Promise.resolve();
-    this.queue = this.queue.then(() => this.#call(method, path, body, type)).catch(() => {});
-    return this.queue;
-  }
-  async #call(method, path, body, type = "application/json", attempt = 0) {
-    try {
-      const res = await fetch(this.api + path, { method, headers: { authorization: `Bearer ${this.token}`, "content-type": type }, body: body === undefined ? undefined : (type === "application/json" ? JSON.stringify(body) : body) });
-      if (!res.ok) throw new Error(`${method} ${path} → ${res.status} ${await res.text()}`);
-      this.failures = 0;
-      return res.headers.get("content-type")?.includes("json") ? res.json() : res.text();
-    } catch (e) {
-      this.failures++;
-      if (attempt < 3) { await new Promise(r => setTimeout(r, 500 * 2 ** attempt)); return this.#call(method, path, body, type, attempt + 1); }
-      this.log(`backend: ${e.message}`);
-      return undefined;
+  async summary() {
+    for (let attempt = 0; ; attempt++) {
+      const r = await this.#send({ method: "GET", path: "/me", type: "application/json" });
+      if (r.status === "ok") return r.data?.summary;
+      if (r.status !== "retry" || attempt >= 2) return undefined;
+      await new Promise(resolve => setTimeout(resolve, 500 * 2 ** attempt));
     }
   }
+  putArtifact(name, body) { return this.#write({ method: "PUT", path: `/sessions/${this.sessionId ?? SESSION_ID}/artifacts/${name}`, body, type: "text/plain" }); }
+  putTranscript(turns) { return this.putArtifact("transcript.jsonl", turns.map(t => JSON.stringify(t)).join("\n") + "\n"); }
+  end(mode) { return this.#write({ method: "POST", path: `/sessions/${this.sessionId ?? SESSION_ID}/end`, body: { mode }, type: "application/json" }); }
+  /** Sends whatever the queue file holds, in order. */
+  flush() { return this.#write(); }
+
+  /** Appends (when given an entry) and drains, serialized so the file is never rewritten under an append. */
+  #write(entry) {
+    this.chain = this.chain.then(() => { if (entry) this.#append(entry); return this.#drain(); }).catch(e => this.log(`backend: ${e.message}`));
+    return this.chain;
+  }
+  #read() {
+    if (!this.queueFile || !existsSync(this.queueFile)) return [];
+    return readFileSync(this.queueFile, "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l));
+  }
+  #append(entry) { appendFileSync(this.queueFile, JSON.stringify(entry) + "\n"); }
+  #save(entries) {
+    if (!entries.length) rmSync(this.queueFile, { force: true });
+    else writeFileSync(this.queueFile, entries.map(e => JSON.stringify(e)).join("\n") + "\n");
+  }
+  async #drain() {
+    const entries = this.#read();
+    while (entries.length) {
+      const entry = entries[0];
+      const r = await this.#send(entry);
+      if (r.status === "retry") return;
+      if (r.status === "rejected") return;
+      if (r.status === "drop") this.log(`backend: dropped ${entry.method} ${entry.path} → ${r.detail}`);
+      entries.shift();
+      if (r.status === "ok" && entry.method === "POST" && entry.path === "/sessions") {
+        this.sessionId = r.data?.sessionId ?? null;
+        if (this.sessionId) for (const e of entries) e.path = e.path.replace(SESSION_ID, this.sessionId);
+      }
+      this.#save(entries);
+    }
+  }
+  /** One attempt. ok | retry (network failure or 5xx) | rejected (401/403) | drop (any other refusal). */
+  async #send({ method, path, body, type }) {
+    let res;
+    try {
+      res = await fetch(this.api + path, { method, headers: { authorization: `Bearer ${this.token}`, "content-type": type }, body: body === undefined ? undefined : (type === "application/json" ? JSON.stringify(body) : body) });
+    } catch (e) { this.offline = true; return { status: "retry", detail: e.message }; }
+    if (res.ok) {
+      this.offline = false;
+      return { status: "ok", data: res.headers.get("content-type")?.includes("json") ? await res.json() : await res.text() };
+    }
+    const detail = `${res.status} ${await res.text()}`;
+    if (res.status === 401 || res.status === 403) { this.rejected = true; this.log(`backend: token rejected (${method} ${path} → ${detail})`); return { status: "rejected", detail }; }
+    if (res.status >= 500) { this.offline = true; return { status: "retry", detail }; }
+    return { status: "drop", detail };
+  }
+}
+
+/** Sends and deletes the queue file of every session folder other than the current one, oldest first. Returns the folders that held one. */
+export async function flushStaleQueues(sessionsDir, currentDir, { api, token, log }) {
+  if (!existsSync(sessionsDir)) return [];
+  const names = readdirSync(sessionsDir, { withFileTypes: true }).filter(e => e.isDirectory() && e.name !== basename(currentDir) && existsSync(join(sessionsDir, e.name, QUEUE_FILE))).map(e => e.name).sort();
+  for (const name of names) await new Backend({ api, token, log, queueFile: join(sessionsDir, name, QUEUE_FILE) }).flush();
+  return names;
 }
