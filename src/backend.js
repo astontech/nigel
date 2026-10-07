@@ -35,9 +35,10 @@ export class Backend {
   /** Sends whatever the queue file holds, in order. */
   flush() { return this.#write(); }
 
-  /** Appends (when given an entry) and drains, serialized so the file is never rewritten under an append. */
+  /** Appends the entry to the queue file at once, in call order, then drains behind any drain already running. */
   #write(entry) {
-    this.chain = this.chain.then(() => { if (entry) this.#append(entry); return this.#drain(); }).catch(e => this.log(`backend: ${e.message}`));
+    if (entry) this.#append(entry);
+    this.chain = this.chain.then(() => this.#drain()).catch(e => this.log(`backend: ${e.message}`));
     return this.chain;
   }
   #read() {
@@ -45,24 +46,20 @@ export class Backend {
     return readFileSync(this.queueFile, "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l));
   }
   #append(entry) { appendFileSync(this.queueFile, JSON.stringify(entry) + "\n"); }
-  #save(entries) {
+  /** Removes the head entry from the file as it stands now, so appends made during a send survive. Synchronous: nothing interleaves. */
+  #shift() {
+    const entries = this.#read();
+    entries.shift();
     if (!entries.length) rmSync(this.queueFile, { force: true });
     else writeFileSync(this.queueFile, entries.map(e => JSON.stringify(e)).join("\n") + "\n");
   }
   async #drain() {
-    const entries = this.#read();
-    while (entries.length) {
-      const entry = entries[0];
-      const r = await this.#send(entry);
-      if (r.status === "retry") return;
-      if (r.status === "rejected") return;
+    for (let entry = this.#read()[0]; entry; entry = this.#read()[0]) {
+      const r = await this.#send({ ...entry, path: this.sessionId ? entry.path.replace(SESSION_ID, this.sessionId) : entry.path });
+      if (r.status === "retry" || r.status === "rejected") return;
       if (r.status === "drop") this.log(`backend: dropped ${entry.method} ${entry.path} → ${r.detail}`);
-      entries.shift();
-      if (r.status === "ok" && entry.method === "POST" && entry.path === "/sessions") {
-        this.sessionId = r.data?.sessionId ?? null;
-        if (this.sessionId) for (const e of entries) e.path = e.path.replace(SESSION_ID, this.sessionId);
-      }
-      this.#save(entries);
+      if (r.status === "ok" && entry.method === "POST" && entry.path === "/sessions") this.sessionId = r.data?.sessionId ?? null;
+      this.#shift();
     }
   }
   /** One attempt. ok | retry (network failure or 5xx) | rejected (401/403) | drop (any other refusal). */

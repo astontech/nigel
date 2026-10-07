@@ -47,6 +47,55 @@ test("with the API unreachable every write lands in the queue file in call order
   ]);
 });
 
+test("against a host that accepts and never answers, every write is on disk before the hung request settles", async () => {
+  let arrived = 0; let released = false;
+  const hung = createServer((req) => { arrived++; if (released) req.socket.destroy(); });
+  const port = await new Promise(r => hung.listen(0, "127.0.0.1", () => r(hung.address().port)));
+  const queueFile = join(tmp(), QUEUE_FILE);
+  const backend = new Backend({ api: `http://127.0.0.1:${port}`, token: "t", log: quiet, queueFile });
+  const pending = [
+    backend.start("drill"),
+    backend.putArtifact("talk-track.md", "x"),
+    backend.putTranscript([{ role: "user", text: "hi" }]),
+    backend.end("drill"),
+  ];
+  try {
+    assert.deepEqual(queued(queueFile).map(e => `${e.method} ${e.path}`), [
+      "POST /sessions",
+      "PUT /sessions/{sessionId}/artifacts/talk-track.md",
+      "PUT /sessions/{sessionId}/artifacts/transcript.jsonl",
+      "POST /sessions/{sessionId}/end",
+    ]);
+  } finally {
+    while (!arrived) await new Promise(r => setTimeout(r, 5));
+    released = true; hung.closeAllConnections(); await Promise.all(pending); await new Promise(r => hung.close(r)); }
+  assert.equal(queued(queueFile).length, 4);
+});
+
+test("a write appended while a send is in flight survives the send", async () => {
+  let release;
+  const gate = new Promise(r => release = r);
+  const seen = [];
+  const server = createServer(async (req, res) => {
+    req.resume(); seen.push(`${req.method} ${req.url}`);
+    if (seen.length === 1) await gate;
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify(req.url === "/sessions" ? { sessionId: "s-1" } : {}));
+  });
+  const port = await new Promise(r => server.listen(0, "127.0.0.1", () => r(server.address().port)));
+  const queueFile = join(tmp(), QUEUE_FILE);
+  const backend = new Backend({ api: `http://127.0.0.1:${port}`, token: "t", log: quiet, queueFile });
+  const first = backend.start("drill");
+  while (!seen.length) await new Promise(r => setTimeout(r, 5));
+  const second = backend.putArtifact("resume.md", "later");
+  assert.equal(queued(queueFile).length, 2);
+  release();
+  await Promise.all([first, second]);
+  await new Promise(r => server.close(r));
+  assert.deepEqual(seen, ["POST /sessions", "PUT /sessions/s-1/artifacts/resume.md"]);
+  assert.equal(existsSync(queueFile), false);
+});
+
 test("a 5xx queues the write too", async () => {
   const api = fakeApi(503); const port = await api.listen();
   const queueFile = join(tmp(), QUEUE_FILE);
