@@ -88,8 +88,7 @@ the package is still `@astontech/interview-shell`, the skill is still
 
 ## Development
 
-`plugin/` is a copy of the `interview-rehearsal` skill from
-[astontech/claude-plugins](https://github.com/astontech/claude-plugins); `npm run
-sync-plugin` refreshes it from a sibling checkout. The shell is plain Node with one
+`plugin/` is the home of the `interview-rehearsal` skill and is edited here; the
+[astontech/claude-plugins](https://github.com/astontech/claude-plugins) copy is frozen at 0.3.0. The shell is plain Node with one
 dependency (`open`); the UI is a single HTML file served locally; Claude Code is driven
 through `--print --input-format stream-json --output-format stream-json`.

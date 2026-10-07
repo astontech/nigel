@@ -17,7 +17,6 @@
   },
   "scripts": {
     "start": "node bin/cli.js",
-    "sync-plugin": "rm -rf plugin/skills && cp -R ../claude-plugins/plugins/interview-rehearsal/skills plugin/skills && cp ../claude-plugins/plugins/interview-rehearsal/.claude-plugin/plugin.json plugin/.claude-plugin/plugin.json",
     "test": "if [ -d test ]; then node --test test/; fi"
   },
   "dependencies": {
