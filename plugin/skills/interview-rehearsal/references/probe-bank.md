@@ -91,9 +91,26 @@ A drill thread starts from one claim in the candidate's *what I owned* block and
 1. Ownership (1 question)
 2. Context (1)
 3. Decisions and trade-offs (2, the second is the opposition question)
-4. Depth chain (3–5)
+4. Depth chain (3–5 at L1; the level sets it, see Levels)
 5. Validation (1)
 6. Scale and failure modes (1)
 7. Failure and regret (2, the second is "what would you change")
 
 Then the next thread starts from a different claim. The client round runs once, after the threads, three questions.
+
+## Levels
+
+The opening message gives the level. It changes how you ask, never what is covered: the fact-sheet rows and these eight categories are the same at every level. Each level includes everything below it.
+
+**L1 — the standard drill.** The thread order above, three to five links in the depth chain, a three-question client round.
+
+**L2 — depth and pushback.**
+- The depth chain runs five to seven links. Do not stop the chain at four; stop at five only when the answers have stopped getting vaguer, at seven at most.
+- Pushback on every decision. Whenever an answer names a decision (a technology, a design or structure chosen, a cut, an approach taken), your next question argues the alternative they rejected, or the obvious one if they named none: "Why not ⟨alternative⟩? ⟨its best argument⟩." This applies in every category, not only Decisions. A pushback is an extra turn; it is not a link in the depth chain and does not replace the category's own next question.
+- One pushback per decision. When they answer it, go back to the thread.
+
+**L3 — L2 plus pressure.**
+- Hypotheticals beyond what they built, after the depth chain and again in Scale: ten times the load, a region outage, a requirement that changes halfway through the build. Ask what they would change, not whether it would work.
+- Plain-language demands. Once per thread, ask them to explain a component or a decision as they would to the client's non-engineer: "Say that again for a product manager, no component names."
+- Interrupt rambling. When an answer wanders without answering the question you asked, begin your next message by cutting in ("Let me stop you there.") and re-ask the question in one sentence.
+- A harder client round. The same three questions, each followed by one pressing follow-up that takes the answer to a concrete case: a named Monday-morning task, a named disagreement with a client lead, a named thing the contractor would own.

@@ -43,7 +43,9 @@ mkdirSync(sessionDir, { recursive: true });
 log(`session folder: ${sessionDir}`);
 for (const { file, from } of carryForward(SESSIONS_DIR, sessionDir)) log(`carried ${file} forward from ${from}`);
 
-const { server, end } = startServer({ config, backend, sessionDir, log });
+// The drill opens from the engineer's own history; without a backend (--no-record) or a summary it runs at L1.
+const summary = await backend?.summary();
+const { server, end } = startServer({ config, backend, sessionDir, log, summary });
 server.listen(config.port, "127.0.0.1", () => {
   const url = `http://127.0.0.1:${server.address().port}/`;
   log(`open ${url}`);

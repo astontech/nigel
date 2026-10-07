@@ -7,6 +7,8 @@ export class Backend {
     this.sessionId = r?.sessionId ?? null;
     return this.sessionId;
   }
+  /** The engineer's own derived grade record (level, reads, threads), or undefined when DORIS cannot be reached. */
+  async summary() { return (await this.#call("GET", "/me"))?.summary; }
   putArtifact(name, body) { return this.#enqueue("PUT", `/sessions/${this.sessionId}/artifacts/${name}`, body, "text/plain"); }
   putTranscript(turns) { return this.putArtifact("transcript.jsonl", turns.map(t => JSON.stringify(t)).join("\n") + "\n"); }
   end(mode) { return this.#enqueue("POST", `/sessions/${this.sessionId}/end`, { mode }); }
