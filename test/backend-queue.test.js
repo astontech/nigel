@@ -138,6 +138,34 @@ test("on launch a queue left in an older session folder is sent and deleted", as
   } finally { await api.close(); }
 });
 
+test("writes queued behind an already-sent POST /sessions carry the returned id into the next launch's flush", async () => {
+  const sessions = tmp();
+  const older = join(sessions, "2026-10-01T00-00-00-000Z"); mkdirSync(older);
+  const current = join(sessions, "2026-10-02T00-00-00-000Z"); mkdirSync(current);
+  const seen = []; let failRest = true;
+  const server = createServer((req, res) => {
+    req.resume();
+    req.on("end", () => {
+      seen.push(`${req.method} ${req.url}`);
+      const start = req.method === "POST" && req.url === "/sessions";
+      if (failRest && !start) { res.writeHead(503); return res.end("down"); }
+      res.writeHead(200, { "content-type": "application/json" });
+      res.end(JSON.stringify(start ? { sessionId: "s-1" } : {}));
+    });
+  });
+  const port = await new Promise(r => server.listen(0, "127.0.0.1", () => r(server.address().port)));
+  try {
+    const first = new Backend({ api: `http://127.0.0.1:${port}`, token: "t", log: quiet, queueFile: join(older, QUEUE_FILE) });
+    assert.equal(await first.start("drill"), "s-1");
+    await first.end("drill");
+    assert.deepEqual(queued(join(older, QUEUE_FILE)).map(e => `${e.method} ${e.path}`), ["POST /sessions/s-1/end"]);
+    failRest = false; seen.length = 0;
+    await flushStaleQueues(sessions, current, { api: `http://127.0.0.1:${port}`, token: "t", log: quiet });
+    assert.deepEqual(seen, ["POST /sessions/s-1/end"]);
+    assert.equal(existsSync(join(older, QUEUE_FILE)), false);
+  } finally { await new Promise(r => server.close(r)); }
+});
+
 test("a 401 at start still exits with the token message and queues nothing", async () => {
   const api = fakeApi(401); const port = await api.listen();
   const home = tmp();

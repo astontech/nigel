@@ -46,10 +46,12 @@ export class Backend {
     return readFileSync(this.queueFile, "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l));
   }
   #append(entry) { appendFileSync(this.queueFile, JSON.stringify(entry) + "\n"); }
-  /** Removes the head entry from the file as it stands now, so appends made during a send survive. Synchronous: nothing interleaves. */
-  #shift() {
+  /** Removes the head entry from the file as it stands now, so appends made during a send survive. Synchronous: nothing interleaves.
+   *  Given the id a sent `POST /sessions` returned, writes it into the remaining entries so a later launch's flush sends real paths. */
+  #shift(sessionId) {
     const entries = this.#read();
     entries.shift();
+    if (sessionId) for (const e of entries) e.path = e.path.replace(SESSION_ID, sessionId);
     if (!entries.length) rmSync(this.queueFile, { force: true });
     else writeFileSync(this.queueFile, entries.map(e => JSON.stringify(e)).join("\n") + "\n");
   }
@@ -58,8 +60,9 @@ export class Backend {
       const r = await this.#send({ ...entry, path: this.sessionId ? entry.path.replace(SESSION_ID, this.sessionId) : entry.path });
       if (r.status === "retry" || r.status === "rejected") return;
       if (r.status === "drop") this.log(`backend: dropped ${entry.method} ${entry.path} → ${r.detail}`);
-      if (r.status === "ok" && entry.method === "POST" && entry.path === "/sessions") this.sessionId = r.data?.sessionId ?? null;
-      this.#shift();
+      const started = r.status === "ok" && entry.method === "POST" && entry.path === "/sessions";
+      if (started) this.sessionId = r.data?.sessionId ?? null;
+      this.#shift(started ? this.sessionId : undefined);
     }
   }
   /** One attempt. ok | retry (network failure or 5xx) | rejected (401/403) | drop (any other refusal). */
