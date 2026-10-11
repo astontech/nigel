@@ -142,6 +142,7 @@ The shell's opening message carries `Level: L1`, `L2` or `L3`, and, when the eng
 
 - Level is the one in the opening message. No level, or any other value, is L1.
 - With no history ("No drill history"), the drill is a plain L1 drill and the history line is dropped.
+- When the opening message also says "DORIS is unreachable: grading will be late", the opener carries one extra line telling the engineer so; nothing else changes and the drill runs as usual.
 - History sets the opener's second line and nothing else here: it never changes a template, and it is never quoted back to the engineer — reads, go-find-out items and thread outcomes are for the debrief and for the thread order the probe bank gives. Never say what a past grade said.
 - The level changes how you ask, never what is covered: the fact-sheet rows, the light-entry parts and the eight probe categories are the same at every level. Read **Levels** in `references/probe-bank.md` and run the drill the way the level there requires.
 
@@ -150,7 +151,7 @@ Open with **Template G:**
 ```
 Drill rules: I ask, you answer out loud as you would in the room, I follow up. No feedback until the debrief. Say "pause" for feedback on your last answer, "stop" for the debrief.
 
-Level ⟨L1, L2 or L3⟩.⟨with history only, a space and: Drill ⟨graded drills + 1⟩; your last one was read ⟨latest readiness⟩.⟩
+Level ⟨L1, L2 or L3⟩.⟨with history only, a space and: Drill ⟨graded drills + 1⟩; your last one was read ⟨latest readiness⟩.⟩⟨when DORIS is unreachable only, a new line: DORIS is unreachable, so this drill is kept on your machine and grading will be late.⟩
 
 Tell me about yourself.
 ```

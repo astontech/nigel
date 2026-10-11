@@ -8,10 +8,10 @@ const PLUGIN_DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "plugin")
 const OPENER = "Use the interview-rehearsal skill.";
 const LEVELS = ["L1", "L2", "L3"];
 
-/** The opening prompt: the skill trigger, the level, and the DORIS grade summary when there is one. No summary means L1 and no history. */
-export function buildOpener(summary) {
+/** The opening prompt: the skill trigger, the level, and the DORIS grade summary when there is one. No summary means L1 and no history; unreachable adds the grading-will-be-late line (DEC-200). */
+export function buildOpener(summary, unreachable = false) {
   const level = LEVELS.includes(summary?.level) ? summary.level : "L1";
-  if (!summary) return `${OPENER}\n\nLevel: ${level}. No drill history.`;
+  if (!summary) return `${OPENER}\n\nLevel: ${level}. No drill history.${unreachable ? " DORIS is unreachable: grading will be late." : ""}`;
   return `${OPENER}\n\nLevel: ${level}.\nDrill history, the derived record from the engineer's graded drills:\n${JSON.stringify(summary, null, 2)}`;
 }
 
@@ -20,7 +20,7 @@ export function buildOpener(summary) {
  * Emits: "delta" (text chunk), "assistant" (full message text), "user" (echo), "exit" (code), "error".
  */
 export class ClaudeSession extends EventEmitter {
-  constructor({ bin = "claude", cwd, summary }) {
+  constructor({ bin = "claude", cwd, summary, unreachable }) {
     super();
     this.cwd = cwd;
     this.turns = [];
@@ -36,7 +36,7 @@ export class ClaudeSession extends EventEmitter {
     this.child.on("exit", code => this.emit("exit", code));
     createInterface({ input: this.child.stderr }).on("line", l => this.emit("stderr", l));
     createInterface({ input: this.child.stdout }).on("line", l => this.#line(l));
-    this.send(buildOpener(summary), { echo: false });
+    this.send(buildOpener(summary, unreachable), { echo: false });
   }
 
   send(text, { echo = true } = {}) {
