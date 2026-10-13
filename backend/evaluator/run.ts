@@ -4,6 +4,7 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
+import { modeFromTranscript } from "../lambda/shared/mode.js";
 import { getSession, updateSession, getArtifact, putArtifact, endedUnevaluated, openSessions, now, type EvaluationSummary } from "../lambda/shared/db.js";
 import { RUBRIC, CATEGORIES, type Category } from "./rubric.js";
 
@@ -46,10 +47,17 @@ async function evaluate(engineerId: string, sessionId: string) {
   ]);
   const openSlots = talkTrack ? (talkTrack.match(/⟪[^⟫]*⟫/g) ?? []).length : undefined;
 
+  // A session stored with an unknown mode (the opener was paraphrased) is read from its transcript now.
+  let mode = s.mode;
+  if (mode === "unknown" && transcript) {
+    mode = modeFromTranscript(transcript) ?? mode;
+    if (mode !== s.mode) await updateSession(engineerId, sessionId, { mode });
+  }
+
   // Build sessions carry no drill to judge; the record is the talk track's slot count.
-  if (s.mode !== "drill" || !transcript) {
+  if (mode !== "drill" || !transcript) {
     const evaluation: EvaluationSummary = { evaluatedAt: now(), model: "none", openSlots };
-    await putArtifact(engineerId, sessionId, "evaluation.json", JSON.stringify({ mode: s.mode, openSlots, note: "build session: no drill to evaluate" }, null, 2));
+    await putArtifact(engineerId, sessionId, "evaluation.json", JSON.stringify({ mode, openSlots, note: "build session: no drill to evaluate" }, null, 2));
     await updateSession(engineerId, sessionId, { status: "evaluated", evaluation, openSlots });
     return { evaluated: false, openSlots };
   }

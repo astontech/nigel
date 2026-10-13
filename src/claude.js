@@ -59,9 +59,13 @@ export class ClaudeSession extends EventEmitter {
   }
 }
 
-/** Mode is inferred from the skill's fixed templates so the record needs no extra signal from the skill. */
+/**
+ * Mode is inferred from what the opener says, not one exact sentence, so a paraphrase still counts.
+ * The backend's lambda/shared/mode.ts carries the same pattern; both have a test on the AST-216 paraphrase.
+ */
+const DRILL_OPENER = /\bDrill rules\b|\bI ask\b[^.\n]{0,12}\byou answer\b|\bLevel L[123]\b[\s\S]{0,400}Tell me about yourself/i;
 export function inferMode(assistantText) {
-  if (/Drill rules: I ask, you answer out loud/.test(assistantText)) return "drill";
+  if (DRILL_OPENER.test(assistantText)) return "drill";
   if (/Paste whatever you have on your most recent project|Interviewers ask about context first/.test(assistantText)) return "build";
   return undefined;
 }
