@@ -10,7 +10,8 @@
     "destroy": "cdk destroy --profile aston-dev",
     "token": "AWS_PROFILE=${AWS_PROFILE:-aston-dev} tsx scripts/token.ts",
     "seed-demo": "AWS_PROFILE=${AWS_PROFILE:-aston-dev} tsx scripts/seed-demo.ts",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "evaluator:eval": "tsx evaluator/eval.ts"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.700.0",

@@ -76,6 +76,38 @@ deploy). Grading logs: CloudWatch, log group prefixed `doris`.
 - **Records on every turn.** The shell posts the full transcript after each turn and
   each artifact on every write, so a closed window loses nothing.
 
+## Evaluator regression cases
+
+The rubric in `evaluator/rubric.ts` is the one thing every engineer is measured by, so
+any edit to it, or a model change, should show its effect on known transcripts before it
+reaches the dashboard. `evaluator/fixtures/` holds one synthetic talk track and four
+drill transcripts (one that holds, one that runs out at the depth chain, one that
+contradicts the talk track, one that barely starts). Each case is a folder with
+`transcript.jsonl` and `expect.json`.
+
+```bash
+cd backend
+npm install
+npm run evaluator:eval                 # all cases
+npm run evaluator:eval -- holds        # one case
+MODEL=opus npm run evaluator:eval      # try another model
+```
+
+The runner grades each case with the same `claude -p` call the Fargate task uses
+(`evaluator/grade.ts`), then asserts the JSON shape and the coarse reads in
+`expect.json`: allowed `readiness` values, whether a thread ran out (`ranOutAt`
+present or null), which categories read strong or weak, whether contradictions are
+listed, and the open-slot count. It never asserts on evidence wording. It prints
+PASS/FAIL per case and exits nonzero on any FAIL; each case's full grade is written to
+`evaluator/eval-output/<case>.json` (git-ignored).
+
+It runs under whatever Claude seat is signed in on the machine (`claude setup-token` or
+an interactive login), never an API key; it refuses to start if `ANTHROPIC_API_KEY` is
+set. A run is four model calls, about a minute. The model's reads are judgment, so a
+rare case can flip on one run: re-run before treating a single FAIL as a regression, and
+loosen an `expect.json` only when the rubric's intent, not its wording, allows both
+reads. `npm test` covers the assertion logic offline.
+
 ## Deleting an engineer's data
 
 Remove their `ENGINEER#` and `TOKEN#` items from the table and the

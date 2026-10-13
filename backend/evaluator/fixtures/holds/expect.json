@@ -1,0 +1,14 @@
+{
+  "readiness": [
+    "ready",
+    "close"
+  ],
+  "anyRanOut": false,
+  "strong": [
+    "decisions",
+    "validation"
+  ],
+  "weak": [],
+  "contradictions": "none",
+  "openSlots": 2
+}

@@ -1,0 +1,12 @@
+{
+  "readiness": [
+    "not-yet"
+  ],
+  "anyRanOut": true,
+  "strong": [],
+  "weak": [
+    "depth-chain"
+  ],
+  "contradictions": "any",
+  "openSlots": 2
+}

@@ -1,0 +1,11 @@
+{
+  "readiness": [
+    "not-yet"
+  ],
+  "anyRanOut": null,
+  "strong": [],
+  "weak": [],
+  "contradictions": "none",
+  "maxCategoriesRead": 2,
+  "openSlots": 2
+}

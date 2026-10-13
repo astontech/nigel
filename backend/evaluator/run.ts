@@ -1,15 +1,11 @@
 // DORIS evaluator: grades ended drill sessions with a headless Claude Code session on an Aston seat.
 // Runs as a Fargate task. Env: TABLE, BUCKET, TOKEN_SECRET; and either ENGINEER_ID+SESSION_ID (one
 // session, launched by the API on /end) or SWEEP=1 (every ended-but-ungraded session, hourly).
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 import { getSession, updateSession, getArtifact, putArtifact, endedUnevaluated, openSessions, now, type EvaluationSummary } from "../lambda/shared/db.js";
-import { RUBRIC, CATEGORIES, type Category } from "./rubric.js";
+import { gradeDrill, parseTranscript, categoryReads, countOpenSlots, MODEL } from "./grade.js";
 
-const exec = promisify(execFile);
 const sm = new SecretsManagerClient({});
-const MODEL = process.env.MODEL ?? "sonnet";
 const IDLE_MINUTES = 30;
 
 async function main() {
@@ -44,7 +40,7 @@ async function evaluate(engineerId: string, sessionId: string) {
     getArtifact(engineerId, sessionId, "talk-track.md"),
     getArtifact(engineerId, sessionId, "drill-log.md"),
   ]);
-  const openSlots = talkTrack ? (talkTrack.match(/⟪[^⟫]*⟫/g) ?? []).length : undefined;
+  const openSlots = talkTrack ? countOpenSlots(talkTrack) : undefined;
 
   // Build sessions carry no drill to judge; the record is the talk track's slot count.
   if (s.mode !== "drill" || !transcript) {
@@ -54,23 +50,9 @@ async function evaluate(engineerId: string, sessionId: string) {
     return { evaluated: false, openSlots };
   }
 
-  const turns = transcript.split("\n").filter(Boolean).map(l => JSON.parse(l) as { role: string; text: string });
-  const convo = turns.map(t => `${t.role === "user" ? "CANDIDATE" : "INTERVIEWER"}: ${t.text}`).join("\n\n");
-  const prompt = `TALK TRACK:\n${talkTrack ?? "(none)"}\n\nDRILL LOG (the interviewer's own running notes, if any):\n${drillLog ?? "(none)"}\n\nTRANSCRIPT:\n${convo}\n\nReturn the JSON now.`;
-
-  // A fresh headless session, no tools, the rubric as its whole system prompt.
-  const { stdout } = await exec("claude", ["-p", prompt, "--output-format", "json", "--system-prompt", RUBRIC, "--tools", "", "--model", MODEL, "--no-session-persistence"],
-    { maxBuffer: 16 * 1024 * 1024, env: { ...process.env, CLAUDECODE: undefined }, timeout: 4 * 60_000 });
-  const result = JSON.parse(stdout);
-  const text: string = result.result ?? "";
-  const parsed = JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1));
-
-  const categories: Partial<Record<Category, "strong" | "weak" | "mixed">> = {};
-  for (const t of parsed.threads ?? []) for (const [c, v] of Object.entries<any>(t.categories ?? {})) {
-    if (!CATEGORIES.includes(c as Category) || !["strong", "weak", "mixed"].includes(v.read)) continue;
-    const prev = categories[c as Category];
-    categories[c as Category] = !prev || prev === v.read ? v.read : "mixed";
-  }
+  const turns = parseTranscript(transcript);
+  const { parsed, result } = await gradeDrill({ talkTrack: talkTrack ?? undefined, drillLog: drillLog ?? undefined, turns, model: MODEL });
+  const categories = categoryReads(parsed);
   const summary: EvaluationSummary = {
     evaluatedAt: now(), model: MODEL, openSlots: parsed.openSlots ?? openSlots,
     threadsHeld: (parsed.threads ?? []).filter((t: any) => !t.ranOutAt).length,
