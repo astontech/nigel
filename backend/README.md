@@ -36,7 +36,16 @@ npm install
 npm run deploy                                     # cdk deploy, profile aston-dev
 npm run token -- --name "Jane Doe"                 # engineer token, printed once
 npm run token -- --name "Taylor Thurman" --manager # manager token (dashboard)
+npm run revoke -- --engineer "Jane Doe"            # delete their token(s); name or id; data stays
+npm run delete-engineer -- --engineer "Jane Doe"   # print what would be removed
+npm run delete-engineer -- --engineer "Jane Doe" --confirm <engineerId>   # remove it
 ```
+
+`revoke` deletes the engineer's `TOKEN#` row(s) and nothing else. `delete-engineer`
+removes the `ENGINEER#` and `TOKEN#` rows, every `SESSION#` item, and every object
+version and delete marker under `sessions/<engineerId>/` (the bucket is versioned),
+then checks the prefix is empty. Without `--confirm <engineerId>` it only prints what
+it would remove. If the check fails it keeps the `ENGINEER#` row so you can run it again.
 
 The evaluator signs in as an Aston Claude seat with a long-lived token. Once, on a
 machine where that seat is signed in:
