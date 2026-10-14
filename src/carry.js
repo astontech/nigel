@@ -1,4 +1,4 @@
-import { copyFileSync, existsSync, readdirSync } from "node:fs";
+import { copyFileSync, existsSync, readdirSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
 
 export const CARRIED = ["talk-track.md", "resume.md"];
@@ -6,7 +6,7 @@ export const CARRIED = ["talk-track.md", "resume.md"];
 /**
  * Copies each carried file from the most recent earlier session folder that holds it into the new
  * session folder. Folder names are ISO timestamps, so name order is time order. A file found in no
- * folder is not created. Local copy only; nothing is sent anywhere.
+ * folder is not created. Local copy only; see `sendCarried` for the send.
  */
 export function carryForward(sessionsDir, sessionDir) {
   const current = basename(sessionDir);
@@ -21,4 +21,13 @@ export function carryForward(sessionsDir, sessionDir) {
     carried.push({ file, from: source });
   }
   return carried;
+}
+
+/**
+ * Sends each file `carryForward` copied to the new session as that session's artifact (DEC-165). The watcher never sees
+ * the copy, so without this DORIS holds no talk track for the session. Goes through the backend's queue, so an
+ * unreachable DORIS keeps the writes for later (DEC-200). Sends nothing when nothing was carried.
+ */
+export async function sendCarried(sessionDir, carried, backend) {
+  for (const { file } of carried) await backend?.putArtifact(file, readFileSync(join(sessionDir, file), "utf8"));
 }
