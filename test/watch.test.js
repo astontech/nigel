@@ -28,3 +28,16 @@ test("files outside the artifact list are not uploaded", async () => {
   stop();
   assert.deepEqual(uploads, []);
 });
+
+test("writing drill-log.md in the session folder triggers an upload of each rewrite", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "watch-"));
+  const uploads = [];
+  const stop = watchArtifacts(dir, (name, body) => uploads.push([name, body]));
+  await wait(100);
+  writeFileSync(join(dir, "drill-log.md"), "# Drill log\n- Q1");
+  await wait(1000);
+  writeFileSync(join(dir, "drill-log.md"), "# Drill log\n- Q1\n- Q2");
+  await wait(1000);
+  stop();
+  assert.deepEqual(uploads, [["drill-log.md", "# Drill log\n- Q1"], ["drill-log.md", "# Drill log\n- Q1\n- Q2"]]);
+});
