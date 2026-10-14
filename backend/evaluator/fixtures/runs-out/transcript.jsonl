@@ -1,0 +1,10 @@
+{"role": "assistant", "text": "This session is recorded and your manager reads the derived record. How does the intake adapter handle a duplicate event?"}
+{"role": "user", "text": "It checks the dedupe store. If the event is already there, it drops it."}
+{"role": "assistant", "text": "How does the dedupe store decide it's a duplicate? What's the key?"}
+{"role": "user", "text": "It's a combination of IDs on the event. Partner and claim, I think, and something else."}
+{"role": "assistant", "text": "What's the something else, and where does it live?"}
+{"role": "user", "text": "I'd have to look. It's in the table somewhere, I don't remember the exact columns."}
+{"role": "assistant", "text": "What happens if the same event arrives a day later?"}
+{"role": "user", "text": "I don't know. I guess it would probably still work. It should be fine."}
+{"role": "assistant", "text": "How did you test that?"}
+{"role": "user", "text": "We tested it a bunch. It was reliable. I don't know the specifics."}

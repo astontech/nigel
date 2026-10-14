@@ -1,0 +1,13 @@
+{
+  "readiness": [
+    "not-yet",
+    "close"
+  ],
+  "anyRanOut": true,
+  "strong": [],
+  "weak": [
+    "ownership"
+  ],
+  "contradictions": "some",
+  "openSlots": 2
+}
