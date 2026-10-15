@@ -2,6 +2,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { S3Client, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import type { StoredEvaluation } from "./level.js";
+import { needsGrading } from "./mode.js";
 import { createHash, randomBytes } from "node:crypto";
 
 export const TABLE = process.env.TABLE!;
@@ -64,10 +65,11 @@ export async function allEngineers(): Promise<Engineer[]> {
   const r = await ddb.send(new QueryCommand({ TableName: TABLE, IndexName: "byType", KeyConditionExpression: "gsi = :t", ExpressionAttributeValues: { ":t": "ENGINEER" } }));
   return (r.Items ?? []) as Engineer[];
 }
+/** Sessions the sweep should grade: ended ones, plus ones closed `evaluated` without a grade while their mode was unknown (see needsGrading). */
 export async function endedUnevaluated(): Promise<Session[]> {
-  const r = await ddb.send(new QueryCommand({ TableName: TABLE, IndexName: "byType", KeyConditionExpression: "gsi = :t", FilterExpression: "#s = :ended",
-    ExpressionAttributeNames: { "#s": "status" }, ExpressionAttributeValues: { ":t": "SESSION", ":ended": "ended" } }));
-  return (r.Items ?? []) as Session[];
+  const r = await ddb.send(new QueryCommand({ TableName: TABLE, IndexName: "byType", KeyConditionExpression: "gsi = :t", FilterExpression: "#s IN (:ended, :evaluated)",
+    ExpressionAttributeNames: { "#s": "status" }, ExpressionAttributeValues: { ":t": "SESSION", ":ended": "ended", ":evaluated": "evaluated" } }));
+  return ((r.Items ?? []) as Session[]).filter(needsGrading);
 }
 export async function openSessions(): Promise<Session[]> {
   const r = await ddb.send(new QueryCommand({ TableName: TABLE, IndexName: "byType", KeyConditionExpression: "gsi = :t", FilterExpression: "#s = :open",

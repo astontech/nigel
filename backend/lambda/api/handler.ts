@@ -2,6 +2,7 @@ import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda
 import { ECSClient, RunTaskCommand } from "@aws-sdk/client-ecs";
 import { engineerByToken, getSession, putSession, updateSession, sessionsFor, allEngineers, evaluationsFor, putArtifact, getArtifact, newId, now, type Engineer, type Session } from "../shared/db.js";
 import { buildSummary, gradedDrills, levelFor, type Level } from "../shared/level.js";
+import { modeFromTranscript } from "../shared/mode.js";
 import { dashboardHtml } from "./dashboard.js";
 
 const ecs = new ECSClient({});
@@ -107,8 +108,3 @@ const pick = (m: unknown): Session["mode"] => (m === "build" || m === "drill") ?
 /** Open slots are the ⟪…⟫ placeholders the skill writes for facts the engineer couldn't give. */
 export const countSlots = (md: string) => (md.match(/⟪[^⟫]*⟫/g) ?? []).length;
 export const projectName = (md: string) => md.match(/^#\s*Talk track\s*[—-]\s*(.+)$/m)?.[1]?.trim();
-export function modeFromTranscript(jsonl: string): Session["mode"] | undefined {
-  if (/Drill rules: I ask, you answer out loud/.test(jsonl)) return "drill";
-  if (/Paste whatever you have on your most recent project|Interviewers ask about context first/.test(jsonl)) return "build";
-  return undefined;
-}
