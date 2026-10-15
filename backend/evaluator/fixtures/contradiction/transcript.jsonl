@@ -1,0 +1,8 @@
+{"role": "assistant", "text": "This session is recorded and your manager reads the derived record. Which parts of the pipeline were yours, and which were the team's?"}
+{"role": "user", "text": "The whole pipeline was mine. Intake, the dedupe store, and the router that publishes to the adjuster topic. I built all of it myself."}
+{"role": "assistant", "text": "Why a Postgres table for dedupe rather than Redis?"}
+{"role": "user", "text": "We went with Redis for dedupe, because it's fast and we had 300 events a second at peak. Postgres would have been too slow."}
+{"role": "assistant", "text": "What was the key you used in Redis?"}
+{"role": "user", "text": "Partner id plus claim id plus a timestamp, with a one-hour expiry."}
+{"role": "assistant", "text": "So an event arriving a day later?"}
+{"role": "user", "text": "It would get through as new, since the key expired. That's accepted, the downstream is idempotent."}

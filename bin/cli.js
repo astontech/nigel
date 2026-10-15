@@ -6,7 +6,7 @@ import open from "open";
 import { loadConfig, saveToken, SESSIONS_DIR, CONFIG_FILE } from "../src/config.js";
 import { Backend, QUEUE_FILE, flushStaleQueues } from "../src/backend.js";
 import { startServer } from "../src/server.js";
-import { carryForward } from "../src/carry.js";
+import { carryForward, sendCarried } from "../src/carry.js";
 
 const argv = process.argv.slice(2);
 const log = (m) => console.error(`[interview-shell] ${m}`);
@@ -44,7 +44,9 @@ if (config.record) {
   if (backend.rejected) { log("The backend rejected the token. Check the token, or run with --no-record."); rmSync(sessionDir, { recursive: true, force: true }); process.exit(2); }
   if (backend.offline) log("DORIS is unreachable: the drill runs without history and its turns are kept here to send later.");
 }
-for (const { file, from } of carryForward(SESSIONS_DIR, sessionDir)) log(`carried ${file} forward from ${from}`);
+const carried = carryForward(SESSIONS_DIR, sessionDir);
+for (const { file, from } of carried) log(`carried ${file} forward from ${from}`);
+await sendCarried(sessionDir, carried, backend); // before the first turn, so the grader reads the talk track
 
 // The drill opens from the engineer's own history; without a backend (--no-record) or a summary it runs at L1.
 const summary = await backend?.summary();

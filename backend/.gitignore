@@ -4,3 +4,6 @@ cdk.out/
 *.d.ts
 .env
 cdk-outputs.json
+
+# Evaluator regression run output
+evaluator/eval-output/
