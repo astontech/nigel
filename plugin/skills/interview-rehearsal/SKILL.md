@@ -7,10 +7,11 @@ description: Rehearse a job interview around your last project. Two modes — bu
 
 You are helping a working engineer rehearse for a client interview: the 30–60 minute conversation where one or two client engineers ask "tell me about your last project" and then pull one thread deep. The method comes from interviewers' own guidance — read `references/interviewer-method.md` before anything else. Its one-line version: **the script is a table of contents; the interview is spent on the facts under it.** So the deliverable is a fact sheet with a spoken talk track on top, and the rehearsal is being interrogated from that fact sheet.
 
-Two modes, chosen by state:
+Three modes, chosen by state and by the engineer's choice:
 
 - **Build** — no talk track exists yet. Interview the engineer, fill the fact sheet for the lead engagement, hold every earlier engagement as a light entry, write `talk-track.md`.
 - **Drill** — a talk track exists. Play the interviewer. Pull threads until they run out. Debrief.
+- **Update** — a talk track exists and the resume was reworked. Add each new resume claim to the right engagement, mark it, write `resume.md`.
 
 Also read `references/fact-sheet.md`, `references/probe-bank.md`, and `references/talk-track-template.md` now — build writes to the last, drill asks from the second, both judge by the first.
 
@@ -48,9 +49,10 @@ Rough is fine. I'll ask for what's missing.
 Found your talk track for ⟨project name from the file⟩ (⟨N⟩ slots still open).
 
 - **Drill** — I play the interviewer. One question at a time, no coaching until the end. I pull one thread until it runs out, then the next. Say "stop" whenever you want the debrief.
+- **Update** — your resume changed. Paste it and I'll add what's new to your talk track.
 - **Rebuild** — start over from your notes and write a fresh talk track.
 
-Drill or rebuild?
+Drill, update, or rebuild?
 ```
 
 **Template B2 — a talk track found with more than one engagement:**
@@ -62,14 +64,15 @@ Found your talk track with ⟨N⟩ engagements (⟨M⟩ slots still open):
 
 - **Drill** — I play the interviewer, leading with ⟨lead name⟩. One question at a time, no coaching until the end. I pull one thread until it runs out, then the next. Say "stop" whenever you want the debrief.
 - **Lead with another engagement** — name it. If it's light, I'll ask the build questions for that one only, then drill it.
+- **Update** — your resume changed. Paste it and I'll add what's new to your talk track.
 - **Rebuild** — start over from your notes and write a fresh talk track.
 
-Drill, lead with another, or rebuild?
+Drill, lead with another, update, or rebuild?
 ```
 
 ⟨project name from the file⟩ in Template B is the lead engagement's name; for a shipped-format talk track it is the name in the `# Talk track —` title.
 
-Rebuild continues to Template A. Drill skips to **Drill**. Naming another engagement continues to **Changing the lead**. A talk track in the shipped format (`references/talk-track-template.md`, *Rules for engagements*) is one full engagement that is the lead: it gets Template B, never B2, and its format is never a reason to rebuild.
+Rebuild continues to Template A. Update continues to **Update**. Drill skips to **Drill**. Naming another engagement continues to **Changing the lead**. A talk track in the shipped format (`references/talk-track-template.md`, *Rules for engagements*) is one full engagement that is the lead: it gets Template B, never B2, and its format is never a reason to rebuild.
 
 If the user's first message already carries the material Template A asks for — notes, a resume, or answers to its three questions — skip Template A and go straight to Step 2.
 
@@ -174,6 +177,43 @@ When the engineer names another engagement as the lead, read the talk track and 
 - **Full engagement:** set the `Lead:` line to it and ask nothing.
 
 Every other engagement section stays byte for byte as it was, and so does the former lead's: it stays full. Rewrite only *Before you rehearse*, to match. Save it as `talk-track.md`, send Template F, and wait for "drill me"; do not start the drill in the same message.
+
+## Update
+
+The engineer's resume was reworked and the talk track has not seen it. Update adds each new claim to the engagement it belongs to. Nothing else in the talk track changes, and the lead stays as it is.
+
+Send **Template U1**:
+
+```
+Paste your current resume, as the client received it.
+```
+
+When it arrives, write it exactly as pasted to `resume.md` in the working directory, before anything else. Then compare it with the talk track by meaning, not by wording. A **new claim** is a technology, a responsibility, or a result the resume states for an engagement that the talk track does not already hold. A claim already marked "added from resume" is not new. Match each new claim to its engagement by employer and dates. If the resume carries an engagement the talk track does not hold, do not add it: name it in Template U3 and say that Rebuild would cover it.
+
+With no new claims, say so in one sentence, keep `talk-track.md` as it is, and stop.
+
+Otherwise send **Template U2**, one message for all the new claims:
+
+```
+Your resume now says things your talk track doesn't hold yet. For each, tell me what you did with it: where you used it and which part was yours. If you can't back it up, say "can't back that up" and I'll leave it as a gap to close.
+
+⟨numbered, one per new claim: "⟨engagement name⟩ — ⟨the claim, as the resume words it⟩"⟩
+```
+
+Take each answer as given. An answer in the engineer's words becomes a fact, written in the register of the talk track. "Can't back that up", "don't know", or any answer that gives nothing they did becomes an **open slot**: `⟪how you used ⟨the claim⟩⟫`. Never turn a claim into a fact without an answer, never fill it in from the resume's wording alone, and never push for more.
+
+Write each claim into its engagement, marked `(added from resume ⟨today's date, YYYY-MM-DD⟩)`, in the form `references/talk-track-template.md` gives under *Rules for engagements*:
+
+- **Full engagement:** a bullet under `### Added from resume`, after the fact sheet. Create that heading when the engagement has none.
+- **Light engagement:** a sub-bullet under *Technologies and how I used them*. The engagement stays light; Update never turns it full.
+
+Every other engagement section stays byte for byte as it was, and so does every line of the touched ones that is not a claim. Rewrite *Before you rehearse* to add each new open slot, in the place the order there gives it. Save `talk-track.md`, then send **Template U3** and wait for "drill me"; do not start the drill in the same message:
+
+```
+Updated. ⟨N⟩ claims added from your resume, ⟨M⟩ of them open slots to find out. Your resume is saved as resume.md.⟨when an engagement was left out: a new line: Your resume also lists ⟨name⟩, which your talk track doesn't hold. Rebuild would cover it.⟩
+
+Say "drill me" when you're ready. New resume claims come first in the drill.
+```
 
 ## Drill
 
