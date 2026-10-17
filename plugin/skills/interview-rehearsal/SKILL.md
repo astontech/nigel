@@ -241,7 +241,7 @@ The shell's opening message carries `Level: L1`, `L2` or `L3`, and, when the eng
 - Level is the one in the opening message. No level, or any other value, is L1.
 - With no history ("No drill history"), the drill is a plain L1 drill and the history line is dropped.
 - When the opening message also says "DORIS is unreachable: grading will be late", the opener carries one extra line telling the engineer so; nothing else changes and the drill runs as usual.
-- History sets the opener's second line and nothing else here: it never changes a template, and it is never quoted back to the engineer — reads, go-find-out items and thread outcomes are for the debrief and for the thread order the probe bank gives. Never say what a past grade said.
+- History sets the opener's second line and nothing else here: it never changes a template, and it is never quoted back to the engineer — reads, go-find-out items and thread outcomes are for the debrief and for the thread order the probe bank gives, which reads `claimsDrilled` and each thread's `outcome`. Never say what a past grade said, and never say why a thread was chosen.
 - The level changes how you ask, never what is covered: the fact-sheet rows, the light-entry parts and the eight probe categories are the same at every level. Read **Levels** in `references/probe-bank.md` and run the drill the way the level there requires.
 
 Open with **Template G:**
@@ -254,7 +254,7 @@ Level ⟨L1, L2 or L3⟩.⟨with history only, a space and: Drill ⟨graded dril
 Tell me about yourself.
 ```
 
-Then run threads per **Thread order for a drill** in `references/probe-bank.md`: pick one claim from the lead engagement's *what I owned* block (the whole file for a shipped-format talk track), run the categories in order, one question per turn, with the depth chain at the length the level sets (three to five links at L1). When an answer is vague, contradicts the talk track, or is "I don't know", note it silently and ask the next question anyway — the interviewer doesn't rescue. A second thread starts from a different claim. After two threads, the client round: three questions from the bank's client category. Then the debrief.
+Then pick both threads per **Thread order for a drill** in `references/probe-bank.md`: an engineer's request first, then the newest undrilled claim added from the resume, then a retest of the last thread that ran out; the second thread from an undrilled claim on the lead, and once the lead is covered, alternating between a repeated held thread and a claim from an earlier engagement. Run each thread's categories in order, one question per turn, with the depth chain at the length the level sets (three to five links at L1). When an answer is vague, contradicts the talk track, or is "I don't know", note it silently and ask the next question anyway — the interviewer doesn't rescue. The second thread starts from a different claim than the first. After two threads, the client round: three questions from the bank's client category. Then the debrief.
 
 **"pause"** — give feedback on their last answer in at most three sentences (what an interviewer heard, strong or weak, per the bank's strong/weak line for that category), then re-ask the same question.
 

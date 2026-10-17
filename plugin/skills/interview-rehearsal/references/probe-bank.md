@@ -86,7 +86,23 @@ Rows: *How the engagement is going*, *Exactly what you built*.
 
 ## Thread order for a drill
 
-A drill thread starts from one claim in the candidate's *what I owned* block and runs the categories in this order, one question per turn, each question built on the previous answer:
+A drill runs two threads. Pick both before the first question, in this order, from three sources: the talk track (the `Lead:` line and the `(added from resume ⟨date⟩)` markers), the engineer's own request, and the history in the opening message. "Drilled", "ran out" and "held" mean only what that history says: a claim is **drilled** when it is in `claimsDrilled`, and a thread **ran out** or **held** by its `outcome` in `threads`. Match the history's claim names to the talk track's claims by meaning, not by wording; this also holds after a rebuild, when old claims are matched to new ones by meaning. With no history, nothing is drilled and no thread ran out or held.
+
+**Thread 1.** The first of these that exists:
+
+1. What the engineer asked for: a named thread or an area, in the message that chose Drill or before your first question. Use it as asked.
+2. The newest undrilled claim marked "added from resume", on any engagement. Newest is the latest marker date.
+3. The most recent thread that ran out, retested from the same claim.
+4. With none of these (a first drill), an undrilled claim from the lead engagement's *what I owned* block, or the whole file for a shipped-format talk track.
+
+**Thread 2.** Never the claim thread 1 started from. The first of these that exists:
+
+1. An undrilled claim on the lead engagement.
+2. Once the lead is covered, alternate between two kinds: a held thread repeated, and a claim from an earlier engagement. Look at the most recent drill's second thread in the history. If it was a claim from an earlier engagement, repeat a held thread now; otherwise take a claim from an earlier engagement. Which held thread: the one drilled longest ago. If the chosen kind has nothing to pick, take the other kind.
+
+A repeated thread starts from the same claim but takes a different path through the follow-ups: ask the same categories in order, but build the depth chain and the follow-ups on other aspects of the claim than a first run would reach for.
+
+Each thread starts from its claim and runs the categories in this order, one question per turn, each question built on the previous answer:
 
 1. Ownership (1 question)
 2. Context (1)
@@ -96,7 +112,7 @@ A drill thread starts from one claim in the candidate's *what I owned* block and
 6. Scale and failure modes (1)
 7. Failure and regret (2, the second is "what would you change")
 
-Then the next thread starts from a different claim. The client round runs once, after the threads, three questions.
+The client round runs once, after the threads, three questions.
 
 ## Levels
 
