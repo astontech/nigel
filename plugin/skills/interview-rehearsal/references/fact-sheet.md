@@ -20,6 +20,19 @@ The material under the script. Every row is something an interviewer will pull o
 | What you'd change | Something specific. "Nothing" is a slot. | Step 4 |
 | How the engagement is going | For a client interview: how the last engagement ended or the current one is going, whether they would be taken back. | Step 4 |
 
+## The light entry
+
+An earlier engagement is held as a light entry: four parts instead of the fifteen rows. Same rule as the rows: **filled** when it holds a specific fact the candidate stated, a **slot** when they didn't say or gave a generality.
+
+| Part | Filled means |
+|---|---|
+| The system | What it is and who it serves, in one sentence a non-engineer would follow. |
+| What was mine | The parts they built or owned. This part decides the "I" / "we" boundary, as *Exactly what you built* does for a full engagement. |
+| A decision I can defend | One design choice, the alternative it beat, and the reason. A choice made by others counts if they can defend the reasoning. |
+| Technologies and how I used them | Each technology tied to something they did with it. A bare list of names is a slot. |
+
+A light entry becomes full by running the build questions for that engagement; the four parts fill the fifteen rows they overlap (*What the system is for*, *Exactly what you built*, *Alternatives rejected*) and the rest are asked.
+
 ## Judging an answer
 
 - Specific and traceable to their words → filled. Write it in their words, tightened.

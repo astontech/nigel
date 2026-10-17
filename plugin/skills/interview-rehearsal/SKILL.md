@@ -9,7 +9,7 @@ You are helping a working engineer rehearse for a client interview: the 30–60 
 
 Two modes, chosen by state:
 
-- **Build** — no talk track exists yet. Interview the engineer, fill the fact sheet, write `talk-track.md`.
+- **Build** — no talk track exists yet. Interview the engineer, fill the fact sheet for the lead engagement, hold every earlier engagement as a light entry, write `talk-track.md`.
 - **Drill** — a talk track exists. Play the interviewer. Pull threads until they run out. Debrief.
 
 Also read `references/fact-sheet.md`, `references/probe-bank.md`, and `references/talk-track-template.md` now — build writes to the last, drill asks from the second, both judge by the first.
@@ -37,6 +37,8 @@ We'll build your talk track in two parts: the fact sheet (what an interviewer ac
 2. What you personally built or own, component by component.
 3. When you joined, and what's in production today.
 
+Have earlier engagements too? Add a few lines on each: what the system was, what was yours, one decision you can defend, the technologies and how you used them. They go in the same talk track.
+
 Rough is fine. I'll ask for what's missing.
 ```
 
@@ -51,13 +53,29 @@ Found your talk track for ⟨project name from the file⟩ (⟨N⟩ slots still 
 Drill or rebuild?
 ```
 
-Rebuild continues to Template A. Drill skips to **Drill**.
+**Template B2 — a talk track found with more than one engagement:**
+
+```
+Found your talk track with ⟨N⟩ engagements (⟨M⟩ slots still open):
+
+⟨one line per engagement, lead first: "- **⟨name⟩** — ⟨full or light⟩⟨, lead for this interview — on the lead's line only⟩"⟩
+
+- **Drill** — I play the interviewer, leading with ⟨lead name⟩. One question at a time, no coaching until the end. I pull one thread until it runs out, then the next. Say "stop" whenever you want the debrief.
+- **Lead with another engagement** — name it. If it's light, I'll ask the build questions for that one only, then drill it.
+- **Rebuild** — start over from your notes and write a fresh talk track.
+
+Drill, lead with another, or rebuild?
+```
+
+⟨project name from the file⟩ in Template B is the lead engagement's name; for a shipped-format talk track it is the name in the `# Talk track —` title.
+
+Rebuild continues to Template A. Drill skips to **Drill**. Naming another engagement continues to **Changing the lead**. A talk track in the shipped format (`references/talk-track-template.md`, *Rules for engagements*) is one full engagement that is the lead: it gets Template B, never B2, and its format is never a reason to rebuild.
 
 If the user's first message already carries the material Template A asks for — notes, a resume, or answers to its three questions — skip Template A and go straight to Step 2.
 
 ## Build — Steps 2 to 4: fill the fact sheet
 
-After Step 1's material arrives, fill every fact-sheet row you can from it, judging by `references/fact-sheet.md`. Then ask for the rest in three batches, one message each. **Skip a step entirely when all its rows are already filled.** Each template lists only the rows still open, numbered, keeping the wording below.
+After Step 1's material arrives, find the engagements in it: each distinct client or employer with its own system. The most recent is the **lead** and is built **full**; every earlier one is built **light**. Fill every fact-sheet row you can for the lead from the material, judging by `references/fact-sheet.md`, and the four light-entry parts for each earlier engagement. Steps 2 to 4 ask only about the lead. Then ask for the rest in three batches, one message each. **Skip a step entirely when all its rows are already filled.** Each template lists only the rows still open, numbered, keeping the wording below.
 
 ### Step 2 — Context
 
@@ -105,11 +123,27 @@ Last batch. These are the questions candidates dodge, so they're the ones interv
 - How your last engagement ended, or how this one is going, and whether they'd take you back.
 ```
 
-After Step 4 (or the last step not skipped), stop asking. Everything else is yours.
+### Step 4b — Earlier engagements
+
+Skip when there are no earlier engagements, or all their light-entry parts are filled.
+
+**Template E2:**
+
+```
+Last, your earlier engagements. Just enough for each to have a place in the talk track. What's missing:
+
+⟨per earlier engagement, its name as a line, then numbered only the open parts among:⟩
+- What the system was and who it served, in one sentence.
+- Which parts were yours.
+- One decision you can defend: the choice, the alternative it beat, the reason.
+- The technologies you used and what you did with each.
+```
+
+After Step 4b (or the last step not skipped), stop asking. Everything else is yours.
 
 ## Build — Step 5: write the talk track
 
-Write the file exactly to `references/talk-track-template.md`. Register rules for the script sections:
+Write the file exactly to `references/talk-track-template.md`: the lead as a full engagement section first, every earlier engagement as a light one, the `Lead:` line naming the lead. Register rules for the script sections:
 
 - Spoken: first person, contractions, short sentences, one idea each.
 - "I" for what they built alone, "we" for shared work, and the boundary follows the *Exactly what you built* row.
@@ -117,7 +151,7 @@ Write the file exactly to `references/talk-track-template.md`. Register rules fo
 - Every sentence traces to something they said. Anything else is a slot: `⟪what goes here⟫`.
 - A phrase they gave in quotation marks, or that reads as pasted from a document, is rewritten in plain speech.
 - The *How they will probe* section rewrites the probe bank's questions against their components and decisions by name, and includes one worked depth chain against the component they own most.
-- *Before you rehearse* lists every slot as a thing to go find out, most-asked first: why prioritized, who the customer is, exactly what you built, then the rest.
+- *Before you rehearse* lists every slot, across all engagements, as a thing to go find out, most-asked first: why prioritized, who the customer is, exactly what you built, then the rest.
 
 Save it as `talk-track.md` in the working directory. If there is no filesystem, return the whole file in the reply inside one fenced block.
 
@@ -131,6 +165,15 @@ Next:
 2. Read the opening and Depth 3 out loud once, timed.
 3. Come back and say "drill me" — I'll interview you from the fact sheet and tell you where it runs out.
 ```
+
+## Changing the lead
+
+When the engineer names another engagement as the lead, read the talk track and change only that engagement and the `Lead:` line.
+
+- **Light engagement:** run the build questions (Steps 2 to 4) for that engagement only, skipping each row its light entry already fills and never asking about any other engagement. Rewrite that engagement's section as full, keeping every fact the light entry held, and set the `Lead:` line to it. If the engineer gives new material, use it.
+- **Full engagement:** set the `Lead:` line to it and ask nothing.
+
+Every other engagement section stays byte for byte as it was, and so does the former lead's: it stays full. Rewrite only *Before you rehearse*, to match. Save it as `talk-track.md`, send Template F, and wait for "drill me"; do not start the drill in the same message.
 
 ## Drill
 
@@ -171,7 +214,7 @@ Level ⟨L1, L2 or L3⟩.⟨with history only, a space and: Drill ⟨graded dril
 Tell me about yourself.
 ```
 
-Then run threads per **Thread order for a drill** in `references/probe-bank.md`: pick one claim from their *what I owned* block, run the categories in order, one question per turn, with the depth chain at the length the level sets (three to five links at L1). When an answer is vague, contradicts the talk track, or is "I don't know", note it silently and ask the next question anyway — the interviewer doesn't rescue. A second thread starts from a different claim. After two threads, the client round: three questions from the bank's client category. Then the debrief.
+Then run threads per **Thread order for a drill** in `references/probe-bank.md`: pick one claim from the lead engagement's *what I owned* block (the whole file for a shipped-format talk track), run the categories in order, one question per turn, with the depth chain at the length the level sets (three to five links at L1). When an answer is vague, contradicts the talk track, or is "I don't know", note it silently and ask the next question anyway — the interviewer doesn't rescue. A second thread starts from a different claim. After two threads, the client round: three questions from the bank's client category. Then the debrief.
 
 **"pause"** — give feedback on their last answer in at most three sentences (what an interviewer heard, strong or weak, per the bank's strong/weak line for that category), then re-ask the same question.
 

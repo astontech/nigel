@@ -1,6 +1,6 @@
 {
   "name": "interview-rehearsal",
   "description": "Interview rehearsal skill bundled with interview-shell — the shell records; the skill only builds and drills.",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "author": { "name": "Aston Technologies" }
 }
