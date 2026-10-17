@@ -1,0 +1,20 @@
+{
+  "level": "L1",
+  "drillsGraded": 3,
+  "latestReadiness": "not-yet",
+  "claimsDrilled": ["carrier B adapter", "dedupe stage", "status rules", "document-upload service"],
+  "categoryReads": {
+    "ownership": { "latest": "strong", "strong": 3, "weak": 0, "mixed": 0 },
+    "decisions": { "latest": "strong", "strong": 2, "weak": 1, "mixed": 0 },
+    "failure": { "latest": "weak", "strong": 0, "weak": 2, "mixed": 1 }
+  },
+  "threads": [
+    { "claim": "carrier B adapter", "outcome": "held", "sessionId": "s1", "drilledOn": "2026-10-01" },
+    { "claim": "dedupe stage", "outcome": "held", "sessionId": "s1", "drilledOn": "2026-10-01" },
+    { "claim": "status rules", "outcome": "held", "sessionId": "s2", "drilledOn": "2026-10-08" },
+    { "claim": "document-upload service", "outcome": "held", "sessionId": "s2", "drilledOn": "2026-10-08" },
+    { "claim": "status rules", "outcome": "ran-out", "sessionId": "s3", "drilledOn": "2026-10-15" },
+    { "claim": "document-upload service", "outcome": "held", "sessionId": "s3", "drilledOn": "2026-10-15" }
+  ],
+  "goFindOut": ["which status rules were Priya's", "how the August dedupe drop was fixed"]
+}
