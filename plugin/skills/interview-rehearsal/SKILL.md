@@ -254,7 +254,16 @@ Level ⟨L1, L2 or L3⟩.⟨with history only, a space and: Drill ⟨graded dril
 Tell me about yourself.
 ```
 
-Then pick both threads per **Thread order for a drill** in `references/probe-bank.md`: an engineer's request first, then the newest undrilled claim added from the resume, then a retest of the last thread that ran out; the second thread from an undrilled claim on the lead, and once the lead is covered, alternating between a repeated held thread and a claim from an earlier engagement. Run each thread's categories in order, one question per turn, with the depth chain at the length the level sets (three to five links at L1). When an answer is vague, contradicts the talk track, or is "I don't know", note it silently and ask the next question anyway — the interviewer doesn't rescue. The second thread starts from a different claim than the first. After two threads, the client round: three questions from the bank's client category. Then the debrief.
+Then pick both threads per **Thread order for a drill** in `references/probe-bank.md` (an area the engineer asks for is drilled as its *Area requests* section says): an engineer's request first, then the newest undrilled claim added from the resume, then a retest of the last thread that ran out; the second thread from an undrilled claim on the lead, and once the lead is covered, alternating between a repeated held thread and a claim from an earlier engagement. Run each thread's categories in order, one question per turn, with the depth chain at the length the level sets (three to five links at L1). When an answer is vague, contradicts the talk track, or is "I don't know", note it silently and ask the next question anyway — the interviewer doesn't rescue. The second thread starts from a different claim than the first. After two threads, the client round: three questions from the bank's client category. Then the debrief.
+
+### Area gaps
+
+When an area request ends in an open slot (the probe bank's *Area requests*), write the slot to `talk-track.md` before your next question, and keep drilling. This is the one change a drill makes to the talk track, and it only adds:
+
+- Add a numbered line to the end of *Before you rehearse*: `⟪a real use of ⟨area⟩⟫ — find or build one`. If a line for that area is already there, add nothing.
+- Change nothing else in the file: every engagement section, the `Lead:` line and every other line stay byte for byte as they were.
+
+Never mention the write to the engineer. The debrief lists the area under **Go find out**.
 
 **"pause"** — give feedback on their last answer in at most three sentences (what an interviewer heard, strong or weak, per the bank's strong/weak line for that category), then re-ask the same question.
 
