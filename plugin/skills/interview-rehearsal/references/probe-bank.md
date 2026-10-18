@@ -90,7 +90,7 @@ A drill runs two threads. Pick both before the first question, in this order, fr
 
 **Thread 1.** The first of these that exists:
 
-1. What the engineer asked for: a named thread or an area, in the message that chose Drill or before your first question. Use it as asked.
+1. What the engineer asked for: a named thread or an area, in the message that chose Drill or before your first question. A named thread is used as asked. An area is drilled as **Area requests** below says. If that section ends the request with an open slot, the request is spent: thread 1 is the first of items 2 to 4 that exists.
 2. The newest undrilled claim marked "added from resume", on any engagement. Newest is the latest marker date.
 3. The most recent thread that ran out, retested from the same claim.
 4. With none of these (a first drill), an undrilled claim from the lead engagement's *what I owned* block, or the whole file for a shipped-format talk track.
@@ -113,6 +113,26 @@ Each thread starts from its claim and runs the categories in this order, one que
 7. Failure and regret (2, the second is "what would you change")
 
 The client round runs once, after the threads, three questions.
+
+## Area requests
+
+An engineer may ask to be drilled on an area they feel weak in: a technology, a tool, a practice. The area is drilled through the engineer's own use of it, never as trivia. Never ask what the area is, how it works in general, or what it is for.
+
+A **real use** is a place the talk track ties the area to something the engineer did with it, on any engagement. A bare name in a list, a claim added from resume that is still a slot, or an answer that gives nothing they did is not a real use.
+
+- **Real use in the talk track.** Thread 1 starts from that use, as the claim. Run the thread's categories in their usual order, each question built on the engineer's own use of the area, in their component names, and each asked about the area itself:
+  1. Ownership: where they used it and which part was theirs.
+  2. Context: why it was there at all.
+  3. Decisions: why it over the alternative; then the opposition question.
+  4. Depth chain: how it was configured in their system.
+  5. Validation: how they knew it worked.
+  6. Scale and failure modes: the caveats and limits they hit.
+  7. Failure and regret: what broke; then what they would change.
+- **No real use in the talk track.** Ask one question: "Where have you used ⟨area⟩?" and nothing before it. Take the answer as given.
+  - They describe a real use: thread 1 starts from it and runs as above.
+  - They say nowhere, or give nothing they did: that is an open slot. Say only "Okay, let's move to something else." and drill another thread. Add the slot to `talk-track.md` (SKILL.md, *Area gaps*). Never explain the area, hint at an answer, or ask a second question about it.
+
+An area request changes which claim thread 1 starts from. Thread 2 follows the normal order below.
 
 ## Levels
 
